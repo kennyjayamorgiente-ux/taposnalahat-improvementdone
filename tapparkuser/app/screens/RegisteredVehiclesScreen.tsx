@@ -34,6 +34,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import { useScreenDimensions } from '../../hooks/use-screen-dimensions';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -123,7 +124,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = user?.profile_image || (user as any)?.profile_image_url;
+    const profileImageUrl = getNormalizedProfileImageFromUser(user as any);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {

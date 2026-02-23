@@ -1027,6 +1027,8 @@ export class ApiService {
           longitude: number | null;
           total_spots: number;
           available_spots: number;
+          capacity_total_spots?: number;
+          capacity_available_spots?: number;
           hourly_rate: string;
           daily_rate: string;
           operating_hours: string;

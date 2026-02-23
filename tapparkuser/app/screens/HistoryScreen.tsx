@@ -43,7 +43,7 @@ import {
   getAdaptiveMargin 
 } from '../../hooks/use-screen-dimensions';
 import { createHistoryScreenStyles } from '../styles/historyScreenStyles';
-import { normalizeProfileImageUrl } from '../../utils/profileImage';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 // Now using dynamic orientation-aware responsive system
 
@@ -112,7 +112,7 @@ const HistoryScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = normalizeProfileImageUrl((user as any)?.profile_image || (user as any)?.profile_image_url);
+    const profileImageUrl = getNormalizedProfileImageFromUser(user as any);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {

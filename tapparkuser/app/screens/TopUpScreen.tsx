@@ -34,6 +34,7 @@ import {
   getAdaptiveMargin 
 } from '../../hooks/use-screen-dimensions';
 import { createHistoryScreenStyles } from '../styles/historyScreenStyles';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 interface Plan {
   plan_id: number;
@@ -74,7 +75,9 @@ const TopUpScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = userProfile?.profile_image || userProfile?.profile_image_url || (user as any)?.profile_image;
+    const profileImageUrl =
+      getNormalizedProfileImageFromUser(userProfile as any) ||
+      getNormalizedProfileImageFromUser(user as any);
 
     if (profileImageUrl) {
       return (

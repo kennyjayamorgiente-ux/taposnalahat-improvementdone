@@ -137,6 +137,20 @@ router.get('/locations', async (req, res) => {
         NULL as longitude, 
         COUNT(ps.parking_spot_id) as total_spots, 
         COUNT(CASE WHEN ps.status = 'available' THEN 1 END) as available_spots, 
+        SUM(
+          CASE
+            WHEN psec.section_mode = 'capacity_only' AND psec.vehicle_type IN ('motorcycle', 'bicycle')
+            THEN COALESCE(psec.capacity, 0)
+            ELSE 0
+          END
+        ) as capacity_total_spots,
+        SUM(
+          CASE
+            WHEN psec.section_mode = 'capacity_only' AND psec.vehicle_type IN ('motorcycle', 'bicycle')
+            THEN GREATEST(COALESCE(psec.capacity, 0) - COALESCE(psec.parked_count, 0) - COALESCE(psec.reserved_count, 0), 0)
+            ELSE 0
+          END
+        ) as capacity_available_spots,
         50.00 as hourly_rate, 
         500.00 as daily_rate, 
         '24/7' as operating_hours, 
@@ -193,6 +207,20 @@ router.get('/locations/:id', async (req, res) => {
         NULL as longitude, 
         COUNT(ps.parking_spot_id) as total_spots, 
         COUNT(CASE WHEN ps.status = 'free' THEN 1 END) as available_spots, 
+        SUM(
+          CASE
+            WHEN psec.section_mode = 'capacity_only' AND psec.vehicle_type IN ('motorcycle', 'bicycle')
+            THEN COALESCE(psec.capacity, 0)
+            ELSE 0
+          END
+        ) as capacity_total_spots,
+        SUM(
+          CASE
+            WHEN psec.section_mode = 'capacity_only' AND psec.vehicle_type IN ('motorcycle', 'bicycle')
+            THEN GREATEST(COALESCE(psec.capacity, 0) - COALESCE(psec.parked_count, 0) - COALESCE(psec.reserved_count, 0), 0)
+            ELSE 0
+          END
+        ) as capacity_available_spots,
         50.00 as hourly_rate, 
         500.00 as daily_rate, 
         '24/7' as operating_hours, 

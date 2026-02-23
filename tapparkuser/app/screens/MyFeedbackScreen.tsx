@@ -33,6 +33,7 @@ import {
   getAdaptiveMargin 
 } from '../../hooks/use-screen-dimensions';
 import { createHistoryScreenStyles } from '../styles/historyScreenStyles';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -184,7 +185,7 @@ const MyFeedbackScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = (user as any)?.profile_image || (user as any)?.profile_image_url;
+    const profileImageUrl = getNormalizedProfileImageFromUser(user as any);
 
     if (profileImageUrl) {
       return (

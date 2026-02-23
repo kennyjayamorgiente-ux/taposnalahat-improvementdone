@@ -49,6 +49,7 @@ import {
   whiteEbikeIconSvg
 } from '../assets/icons/index2';
 import { getHomeScreenStyles } from '../styles/homeScreenStyles';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -197,7 +198,7 @@ export default function HomeScreen() {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = (user as any)?.profile_image || (user as any)?.profile_image_url;
+    const profileImageUrl = getNormalizedProfileImageFromUser(user as any);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {
@@ -521,6 +522,24 @@ export default function HomeScreen() {
     }
     
     return '#9CA3AF'; // Gray default
+  };
+
+  const getAreaSpotsText = (area: any) => {
+    const available = Number.isFinite(Number(area?.available_spots)) ? Number(area.available_spots) : 0;
+    const total = Number.isFinite(Number(area?.total_spots)) ? Number(area.total_spots) : 0;
+    return `${available} / ${total} spots available`;
+  };
+
+  const getAreaCapacityText = (area: any) => {
+    const availableCapacity = Number.isFinite(Number(area?.capacity_available_spots))
+      ? Number(area.capacity_available_spots)
+      : 0;
+    const totalCapacity = Number.isFinite(Number(area?.capacity_total_spots))
+      ? Number(area.capacity_total_spots)
+      : 0;
+
+    if (totalCapacity <= 0) return null;
+    return `Motorcycle/Bike: ${availableCapacity} / ${totalCapacity} spots available`;
   };
 
   // Format time for display
@@ -3581,23 +3600,46 @@ export default function HomeScreen() {
             contentContainerStyle={homeScreenStyles.horizontalScrollContent}
           >
               {parkingAreas.map((area) => (
-            <TouchableOpacity 
+                <TouchableOpacity 
                   key={area.id}
-              style={homeScreenStyles.areaCard}
+                  style={homeScreenStyles.areaCard}
                   onPress={() => handleAreaCardPress(area)}
                 >
-                  <View style={homeScreenStyles.areaInfoContainer}>
-                    <Text style={homeScreenStyles.areaName}>{area.name?.toUpperCase() || 'PARKING AREA'}</Text>
-                    <Text style={[homeScreenStyles.areaName, { fontSize: getResponsiveFontSize(12), color: colors.textSecondary, marginTop: 4 }]}>
-                      {area.available_spots || 0} / {area.total_spots || 0} spots available
-                    </Text>
+                  <View style={homeScreenStyles.areaHeaderRow}>
+                    <View style={homeScreenStyles.areaTextContainer}>
+                      <Text
+                        style={homeScreenStyles.areaName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {area.name?.toUpperCase() || 'PARKING AREA'}
+                      </Text>
+                      <Text
+                        style={[homeScreenStyles.areaSpotsText, { color: colors.textSecondary }]}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
+                        {getAreaSpotsText(area)}
+                      </Text>
+                      {getAreaCapacityText(area) && (
+                        <Text
+                          style={[homeScreenStyles.areaCapacityText, { color: colors.textSecondary }]}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
+                        >
+                          {getAreaCapacityText(area)}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={homeScreenStyles.areaMarkerSlot}>
+                      <Ionicons
+                        name="location"
+                        size={36}
+                        color={getLandmarkIconColor(area.available_spots, area.total_spots)}
+                      />
+                    </View>
                   </View>
-                  <Ionicons 
-                    name="location" 
-                    size={40} 
-                    color={getLandmarkIconColor(area.available_spots, area.total_spots)} 
-                  />
-            </TouchableOpacity>
+                </TouchableOpacity>
               ))}
           </ScrollView>
           )}

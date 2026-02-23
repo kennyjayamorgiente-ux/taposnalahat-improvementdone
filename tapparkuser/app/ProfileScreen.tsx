@@ -42,7 +42,7 @@ import {
 } from './assets/icons/index2';
 import { ApiService } from '../services/api';
 import { useScreenDimensions } from '../hooks/use-screen-dimensions';
-import { normalizeUserProfileImageFields, withCacheBust } from '../utils/profileImage';
+import { normalizeProfileImageUrl, normalizeUserProfileImageFields, withCacheBust } from '../utils/profileImage';
 
 
 const ProfileScreen: React.FC = () => {
@@ -63,11 +63,16 @@ const ProfileScreen: React.FC = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
   const ratingStarColor = isDarkMode ? '#D80000' : '#8A0000';
+
+  useEffect(() => {
+    setProfileImageFailed(false);
+  }, [userProfile?.profile_image, userProfile?.profile_image_url, user?.profile_image, (user as any)?.profile_image_url]);
 
   // Profile picture component
   const ProfilePicture = ({ size = 120 }: { size?: number }) => {
@@ -80,7 +85,12 @@ const ProfileScreen: React.FC = () => {
     };
 
     // Check for profile image in userProfile first, then user
-    const profileImageUrl = userProfile?.profile_image || user?.profile_image;
+    const profileImageUrl = profileImageFailed ? null : (
+      normalizeProfileImageUrl(userProfile?.profile_image) ||
+      normalizeProfileImageUrl((userProfile as any)?.profile_image_url) ||
+      normalizeProfileImageUrl(user?.profile_image) ||
+      normalizeProfileImageUrl((user as any)?.profile_image_url)
+    );
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {
@@ -94,6 +104,7 @@ const ProfileScreen: React.FC = () => {
             transition={200}
             onError={({ error }) => {
               console.warn('⚠️ Failed to load profile image:', profileImageUrl, error);
+              setProfileImageFailed(true);
             }}
           />
         </View>

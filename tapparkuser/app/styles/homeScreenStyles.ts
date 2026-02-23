@@ -270,24 +270,38 @@ export const getHomeScreenStyles = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 12,
     padding: getResponsivePadding(16),
     marginRight: getResponsiveMargin(12),
-    width: getResponsiveSize(180),
-    minHeight: getResponsiveSize(100),
-    justifyContent: 'space-between',
+    width: getResponsiveSize(260),
+    minHeight: getResponsiveSize(145),
+    justifyContent: 'center',
     flex: 1,
+  },
+  areaHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  areaTextContainer: {
+    flex: 1,
+    paddingRight: getResponsivePadding(8),
+  },
+  areaMarkerSlot: {
+    width: getResponsiveSize(36),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   areaName: {
     fontSize: getResponsiveFontSize(14),
     fontWeight: '600',
     color: colors.text,
-    flex: 1,
   },
-  areaInfoContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
+  areaSpotsText: {
+    fontSize: getResponsiveFontSize(12),
+    marginTop: getResponsiveMargin(4),
   },
-  areaLocationIcon: {
-    alignSelf: 'flex-end',
-    marginTop: getResponsiveMargin(8),
+  areaCapacityText: {
+    fontSize: getResponsiveFontSize(11),
+    marginTop: getResponsiveMargin(2),
   },
   addVehicleSection: {
     paddingHorizontal: getResponsivePadding(20),

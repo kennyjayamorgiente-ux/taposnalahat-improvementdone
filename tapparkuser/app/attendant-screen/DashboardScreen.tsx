@@ -42,6 +42,7 @@ import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { Colors } from '../../constants/theme';
 import { useScreenDimensions, getAdaptiveColumns, getAdaptiveFontSize, getAdaptiveSpacing, getAdaptivePadding } from '../../hooks/use-screen-dimensions';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 
 interface VehicleType {
@@ -2879,7 +2880,7 @@ const DashboardScreen: React.FC = () => {
           >
             <ProfilePicture 
               size={28} 
-              profileImageUrl={(user as any)?.profile_image_url} // Add this field to your user object
+              profileImageUrl={getNormalizedProfileImageFromUser(user as any) || undefined}
             />
             <Text style={styles.attendantText}>
               Attendant: {user ? `${user.first_name} ${user.last_name}` : 'Loading...'}

@@ -33,7 +33,7 @@ import {
   whiteMotorIconSvg,
   whiteEbikeIconSvg
 } from '../assets/icons/index2';
-import { normalizeProfileImageUrl } from '../../utils/profileImage';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -100,6 +100,11 @@ const FavoritesScreen: React.FC = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [showVehicleMismatchModal, setShowVehicleMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState<any>(null);
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
+
+  useEffect(() => {
+    setProfileImageFailed(false);
+  }, [(user as any)?.profile_image, (user as any)?.profile_image_url]);
 
   // Profile picture component
   const ProfilePicture = ({ size = 100 }: { size?: number }) => {
@@ -110,7 +115,7 @@ const FavoritesScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = normalizeProfileImageUrl((user as any)?.profile_image || (user as any)?.profile_image_url);
+    const profileImageUrl = profileImageFailed ? null : getNormalizedProfileImageFromUser(user as any);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {
@@ -124,6 +129,7 @@ const FavoritesScreen: React.FC = () => {
             transition={200}
             onError={({ error }) => {
               console.warn('⚠️ Failed to load profile image (FavoritesScreen):', profileImageUrl, error);
+              setProfileImageFailed(true);
             }}
           />
         </View>

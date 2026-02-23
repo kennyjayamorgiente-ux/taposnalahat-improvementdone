@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import ApiService from '../../services/api';
 import { useScreenDimensions } from '../../hooks/use-screen-dimensions';
+import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -82,7 +83,12 @@ const ChangePasswordScreen: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
   const styles = getStyles(colors);
+
+  useEffect(() => {
+    setProfileImageFailed(false);
+  }, [user?.profile_image, (user as any)?.profile_image_url]);
 
   // Profile picture component
   const ProfilePicture = ({ size = 120 }: { size?: number }) => {
@@ -93,7 +99,7 @@ const ChangePasswordScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = user?.profile_image || (user as any)?.profile_image_url;
+    const profileImageUrl = profileImageFailed ? null : getNormalizedProfileImageFromUser(user as any);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {
@@ -107,6 +113,7 @@ const ChangePasswordScreen: React.FC = () => {
             transition={200}
             onError={({ error }) => {
               console.warn('⚠️ Failed to load profile image (ChangePasswordScreen):', profileImageUrl, error);
+              setProfileImageFailed(true);
             }}
           />
         </View>

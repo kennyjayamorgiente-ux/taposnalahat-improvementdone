@@ -4,13 +4,17 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   TextInput,
   Image,
   Animated,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -105,6 +109,7 @@ export default function AddVehicleScreen() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const pulseAnim = new Animated.Value(1);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Form validation errors
   const [errors, setErrors] = useState({
@@ -275,7 +280,20 @@ export default function AddVehicleScreen() {
     <View style={addVehicleScreenStyles.container}>
       <SharedHeader title="Add Vehicle" />
 
-      <View style={addVehicleScreenStyles.content}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+          enabled
+        >
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={addVehicleScreenStyles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            <View style={addVehicleScreenStyles.content}>
           {/* Top Section - Car with Glowing Circles */}
           <View style={addVehicleScreenStyles.topSection}>
             <Animated.View 
@@ -313,7 +331,12 @@ export default function AddVehicleScreen() {
                 addVehicleScreenStyles.dropdownContainer,
                 errors.vehicleType && addVehicleScreenStyles.errorInput
               ]}
-              onPress={toggleDropdown}
+              onPress={() => {
+                toggleDropdown();
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollTo({ y: 280, animated: true });
+                }, 100);
+              }}
               activeOpacity={0.7}
             >
               <View style={addVehicleScreenStyles.dropdownHeader}>
@@ -380,6 +403,11 @@ export default function AddVehicleScreen() {
                   setErrors(prev => ({ ...prev, vehicleColor: '' }));
                 }
               }}
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollTo({ y: 330, animated: true });
+                }, 100);
+              }}
               ref={vehicleColorRef}
             />
 
@@ -403,6 +431,11 @@ export default function AddVehicleScreen() {
                 if (errors.plateNumber) {
                   setErrors(prev => ({ ...prev, plateNumber: '' }));
                 }
+              }}
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollTo({ y: 390, animated: true });
+                }, 100);
               }}
               ref={plateNumberRef}
             />
@@ -428,6 +461,11 @@ export default function AddVehicleScreen() {
                   setErrors(prev => ({ ...prev, vehicleBrand: '' }));
                 }
               }}
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollTo({ y: 450, animated: true });
+                }, 100);
+              }}
               ref={vehicleBrandRef}
             />
 
@@ -451,6 +489,11 @@ export default function AddVehicleScreen() {
                 if (errors.vehicleModel) {
                   setErrors(prev => ({ ...prev, vehicleModel: '' }));
                 }
+              }}
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
               }}
               ref={vehicleModelRef}
             />
@@ -486,6 +529,9 @@ export default function AddVehicleScreen() {
             </View>
           </View>
         </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </View>
   );
 }

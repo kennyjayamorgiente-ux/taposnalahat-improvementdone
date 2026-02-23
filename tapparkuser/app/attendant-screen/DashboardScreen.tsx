@@ -10,12 +10,16 @@ import {
   Animated,
   Dimensions,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
   ActivityIndicator
 } from 'react-native';
@@ -183,10 +187,21 @@ const DashboardScreen: React.FC = () => {
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const assignedAreaIdRef = useRef<number | null>(null);
+  const guestBookingScrollRef = useRef<ScrollView>(null);
 
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (error instanceof Error && error.message) return error.message;
     return fallback;
+  };
+
+  const scrollGuestBookingForm = (y?: number) => {
+    setTimeout(() => {
+      if (typeof y === 'number') {
+        guestBookingScrollRef.current?.scrollTo({ y, animated: true });
+      } else {
+        guestBookingScrollRef.current?.scrollToEnd({ animated: true });
+      }
+    }, 100);
   };
 
   useEffect(() => {
@@ -3575,18 +3590,26 @@ const DashboardScreen: React.FC = () => {
         animationType="slide"
         onRequestClose={closeGuestBookingModal}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.slotDetailsModal, { maxHeight: '80%', flex: 0 }]}>
-            <Text style={styles.slotDetailsTitle}>
-              Create Guest Booking - {selectedSlot?.slotId}
-            </Text>
-            
-            <ScrollView 
-              style={{ maxHeight: 400 }} 
-              contentContainerStyle={{ paddingBottom: 10 }}
-              showsVerticalScrollIndicator={true}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              style={{ width: '100%', alignItems: 'center' }}
+              enabled
             >
-              <View style={{ marginBottom: 20 }}>
+              <View style={[styles.slotDetailsModal, { maxHeight: '80%', flex: 0 }]}>
+                <Text style={styles.slotDetailsTitle}>
+                  Create Guest Booking - {selectedSlot?.slotId}
+                </Text>
+                
+                <ScrollView 
+                  ref={guestBookingScrollRef}
+                  style={{ maxHeight: 400 }} 
+                  contentContainerStyle={{ paddingBottom: 10 }}
+                  showsVerticalScrollIndicator={true}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  <View style={{ marginBottom: 20 }}>
                 <Text style={[styles.slotDetailLabel, { marginBottom: 8 }]}>First Name *</Text>
                 <TextInput
                   style={[styles.input, { marginBottom: 16 }]}
@@ -3594,6 +3617,7 @@ const DashboardScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={guestBookingData.firstName}
                   onChangeText={(text) => setGuestBookingData({ ...guestBookingData, firstName: text })}
+                  onFocus={() => scrollGuestBookingForm(70)}
                 />
 
                 <Text style={[styles.slotDetailLabel, { marginBottom: 8 }]}>Last Name *</Text>
@@ -3603,6 +3627,7 @@ const DashboardScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={guestBookingData.lastName}
                   onChangeText={(text) => setGuestBookingData({ ...guestBookingData, lastName: text })}
+                  onFocus={() => scrollGuestBookingForm(130)}
                 />
 
                 <Text style={[styles.slotDetailLabel, { marginBottom: 8 }]}>Plate Number *</Text>
@@ -3613,6 +3638,7 @@ const DashboardScreen: React.FC = () => {
                   value={guestBookingData.plateNumber}
                   onChangeText={handlePlateNumberChange}
                   autoCapitalize="characters"
+                  onFocus={() => scrollGuestBookingForm(200)}
                 />
                 
                 {/* Plate number validation warning */}
@@ -3660,6 +3686,7 @@ const DashboardScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={guestBookingData.brand}
                   onChangeText={(text) => setGuestBookingData({ ...guestBookingData, brand: text })}
+                  onFocus={() => scrollGuestBookingForm(360)}
                 />
 
                 <Text style={[styles.slotDetailLabel, { marginBottom: 8 }]}>Model (Optional)</Text>
@@ -3669,6 +3696,7 @@ const DashboardScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={guestBookingData.model}
                   onChangeText={(text) => setGuestBookingData({ ...guestBookingData, model: text })}
+                  onFocus={() => scrollGuestBookingForm(430)}
                 />
 
                 <Text style={[styles.slotDetailLabel, { marginBottom: 8 }]}>Color (Optional)</Text>
@@ -3678,30 +3706,33 @@ const DashboardScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={guestBookingData.color}
                   onChangeText={(text) => setGuestBookingData({ ...guestBookingData, color: text })}
+                  onFocus={() => scrollGuestBookingForm()}
                 />
               </View>
-            </ScrollView>
+                </ScrollView>
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
-              <TouchableOpacity 
-                style={[styles.goBackButton, { flex: 0.48, backgroundColor: '#ccc' }]} 
-                onPress={closeGuestBookingModal}
-                disabled={isCreatingGuestBooking}
-              >
-                <Text style={styles.goBackButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.goBackButton, { flex: 0.48, backgroundColor: '#8B0000' }]} 
-                onPress={handleCreateGuestBooking}
-                disabled={isCreatingGuestBooking}
-              >
-                <Text style={[styles.goBackButtonText, { color: '#fff' }]}>
-                  {isCreatingGuestBooking ? 'Creating...' : 'Create Booking'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                  <TouchableOpacity 
+                    style={[styles.goBackButton, { flex: 0.48, backgroundColor: '#ccc' }]} 
+                    onPress={closeGuestBookingModal}
+                    disabled={isCreatingGuestBooking}
+                  >
+                    <Text style={styles.goBackButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.goBackButton, { flex: 0.48, backgroundColor: '#8B0000' }]} 
+                    onPress={handleCreateGuestBooking}
+                    disabled={isCreatingGuestBooking}
+                  >
+                    <Text style={[styles.goBackButtonText, { color: '#fff' }]}>
+                      {isCreatingGuestBooking ? 'Creating...' : 'Create Booking'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* Attendant Action Modal */}

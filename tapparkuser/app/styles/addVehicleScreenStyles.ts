@@ -86,6 +86,9 @@ export const addVehicleScreenStyles = StyleSheet.create({
     flexDirection: 'column',
     paddingHorizontal: getResponsivePadding(24),
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   topSection: {
     flex: 0.25,
     justifyContent: 'center',

@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { tapParkLogoSvg } from '../app/assets/icons/index2';
-import { useThemeColors } from '../contexts/ThemeContext';
+import { tapParkLogoSvg, darkTapParkLogoSvg } from '../app/assets/icons/index2';
+import { useThemeColors, useTheme } from '../contexts/ThemeContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -65,6 +65,7 @@ interface TermsModalProps {
 
 const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = false }) => {
   const colors = useThemeColors();
+  const { isDarkMode } = useTheme();
 
   const styles = StyleSheet.create({
     modalOverlay: {
@@ -99,7 +100,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = 
     title: {
       fontSize: getResponsiveFontSize(24),
       fontWeight: 'bold',
-      color: '#8A0000',
+      color: colors.primary,
       textAlign: 'center',
       marginBottom: getResponsiveMargin(5),
     },
@@ -135,7 +136,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = 
     sectionTitle: {
       fontSize: getResponsiveFontSize(16),
       fontWeight: 'bold',
-      color: '#8A0000',
+      color: colors.primary,
       marginBottom: getResponsiveMargin(8),
     },
     sectionText: {
@@ -162,7 +163,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = 
       marginTop: getResponsiveMargin(10),
     },
     acceptButton: {
-      backgroundColor: '#8A0000',
+      backgroundColor: colors.button,
       borderRadius: getResponsiveSize(8),
       paddingVertical: getResponsivePadding(15),
       paddingHorizontal: getResponsivePadding(30),
@@ -171,7 +172,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = 
       minHeight: getResponsiveSize(50),
     },
     acceptButtonText: {
-      color: '#FFFFFF',
+      color: colors.buttonText,
       fontSize: getResponsiveFontSize(16),
       fontWeight: 'bold',
     },
@@ -193,7 +194,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = 
           <View style={styles.headerSection}>
             <View style={styles.logoContainer}>
               <SvgXml
-                xml={tapParkLogoSvg}
+                xml={isDarkMode ? darkTapParkLogoSvg : tapParkLogoSvg}
                 width={getResponsiveSize(100)}
                 height={getResponsiveSize(100)}
               />
@@ -308,7 +309,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ visible, onAccept, isLoading = 
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={colors.buttonText} size="small" />
               ) : (
                 <Text style={styles.acceptButtonText}>ACCEPT</Text>
               )}

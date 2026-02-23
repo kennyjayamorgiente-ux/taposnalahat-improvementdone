@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import { AppTheme } from '../../constants/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -45,10 +46,10 @@ const getResponsiveMargin = (baseMargin: number) => {
   return baseMargin;
 };
 
-export const greetingsStyles = StyleSheet.create({
+export const getGreetingsStyles = (colors: typeof AppTheme.light) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: colors.background,
   },
   safeArea: {
     flex: 1,
@@ -95,7 +96,7 @@ export const greetingsStyles = StyleSheet.create({
   welcomeText: {
     fontSize: getResponsiveFontSize(40),
     fontWeight: '700',
-    color: '#2C2C4A',
+    color: colors.text,
     textAlign: isTablet || isLargeTablet ? 'center' : 'left',
     lineHeight: getResponsiveFontSize(48),
     //paddingLeft: getResponsivePadding(5),
@@ -122,8 +123,8 @@ export const greetingsStyles = StyleSheet.create({
   },
   signInButton: {
     flex: 1,
-    backgroundColor: '#E0E0E0',
-    borderColor: '#E0E0E0',
+    backgroundColor: colors.buttonSecondary,
+    borderColor: colors.border,
     borderWidth: 1,
     borderRadius: getResponsiveSize(12),
     paddingVertical: getResponsivePadding(18),
@@ -134,11 +135,11 @@ export const greetingsStyles = StyleSheet.create({
   signInButtonText: {
     fontSize: getResponsiveFontSize(16),
     fontWeight: '600',
-    color: '#374151',
+    color: colors.buttonSecondaryText,
   },
   loginButton: {
     flex: 1,
-    backgroundColor: '#8B0000',
+    backgroundColor: colors.button,
     borderRadius: getResponsiveSize(12),
     paddingVertical: getResponsivePadding(18),
     justifyContent: 'center',
@@ -148,8 +149,8 @@ export const greetingsStyles = StyleSheet.create({
   loginButtonText: {
     fontSize: getResponsiveFontSize(16),
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.buttonText,
   },
 });
 
-export default greetingsStyles;
+export default getGreetingsStyles;

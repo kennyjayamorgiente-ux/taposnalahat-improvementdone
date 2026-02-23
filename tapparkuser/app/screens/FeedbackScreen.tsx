@@ -17,7 +17,9 @@ import { SvgXml } from 'react-native-svg';
 import {
   whiteStarIconSvg,
   maroonStarIconSvg,
+  darkStarIconSvg,
 } from '../assets/icons/index2';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ApiService } from '../../services/api';
 import getFeedbackScreenStyles from '../styles/feedbackScreenStyles';
 
@@ -53,6 +55,7 @@ interface FeedbackComment {
 
 const FeedbackScreen: React.FC = () => {
   const router = useRouter();
+  const { isDarkMode } = useTheme();
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [comments, setComments] = useState<FeedbackComment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -157,7 +160,7 @@ const FeedbackScreen: React.FC = () => {
       stars.push(
         <View key={i} style={styles.starContainer}>
           <SvgXml
-            xml={i <= rating ? maroonStarIconSvg : whiteStarIconSvg}
+            xml={i <= rating ? (isDarkMode ? darkStarIconSvg : maroonStarIconSvg) : whiteStarIconSvg}
             width={size}
             height={size}
           />

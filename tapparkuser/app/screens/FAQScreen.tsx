@@ -13,7 +13,9 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { SvgXml } from 'react-native-svg';
 import { 
   tapParkLogoSvg,
-  maroonSimpleArrowDownSvg
+  maroonSimpleArrowDownSvg,
+  darkTapParkLogoSvg,
+  darkSimpleArrowDownSvg
 } from '../assets/icons/index2';
 import { getFaqScreenStyles } from '../styles/faqScreenStyles';
 
@@ -136,7 +138,7 @@ const FAQScreen = () => {
           <View style={faqScreenStyles.profilePictureSection}>
             <View style={faqScreenStyles.profilePictureContainer}>
               <SvgXml 
-                xml={tapParkLogoSvg}
+                xml={isDarkMode ? darkTapParkLogoSvg : tapParkLogoSvg}
                 width={getResponsiveSize(120)}
                 height={getResponsiveSize(120)}
               />
@@ -163,7 +165,7 @@ const FAQScreen = () => {
                 <View style={faqScreenStyles.faqQuestionContainer}>
                   <Text style={faqScreenStyles.faqQuestion}>{faq.question}</Text>
                   <SvgXml 
-                    xml={maroonSimpleArrowDownSvg}
+                    xml={isDarkMode ? darkSimpleArrowDownSvg : maroonSimpleArrowDownSvg}
                     width={getResponsiveSize(16)}
                     height={getResponsiveSize(16)}
                     style={[

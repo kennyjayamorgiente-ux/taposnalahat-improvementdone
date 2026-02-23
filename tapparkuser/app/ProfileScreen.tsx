@@ -29,13 +29,20 @@ import {
   maroonTestPaperIconSvg,
   maroonDebitIconSvg,
   maroonInfoIconSvg,
+  darkLockIconSvg,
+  darkNewCarIconSvg,
+  darkTestPaperIconSvg,
+  darkDebitIconSvg,
+  darkInfoIconSvg,
   writeMaroonIconSvg,
   whiteCustomerServiceIconSvg,
   whiteStarIconSvg,
-  maroonStarIconSvg
+  maroonStarIconSvg,
+  darkStarIconSvg
 } from './assets/icons/index2';
 import { ApiService } from '../services/api';
 import { useScreenDimensions } from '../hooks/use-screen-dimensions';
+import { normalizeUserProfileImageFields, withCacheBust } from '../utils/profileImage';
 
 
 const ProfileScreen: React.FC = () => {
@@ -60,6 +67,7 @@ const ProfileScreen: React.FC = () => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
+  const ratingStarColor = isDarkMode ? '#D80000' : '#8A0000';
 
   // Profile picture component
   const ProfilePicture = ({ size = 120 }: { size?: number }) => {
@@ -116,13 +124,16 @@ const ProfileScreen: React.FC = () => {
       
       const response = await ApiService.getProfile();
       if (response.success) {
-        const updatedUser = response.data.user;
-        if (updatedUser.profile_image) {
-          const cacheBustedUrl = `${updatedUser.profile_image}?t=${Date.now()}`;
-          updatedUser.profile_image = cacheBustedUrl;
-          console.log('📸 Profile image URL:', cacheBustedUrl);
+        const updatedUser = normalizeUserProfileImageFields(response.data.user) as any;
+        if (updatedUser?.profile_image) {
+          const cacheBustedUrl = withCacheBust(updatedUser.profile_image);
+          if (cacheBustedUrl) {
+            updatedUser.profile_image = cacheBustedUrl;
+            updatedUser.profile_image_url = cacheBustedUrl;
+            console.log('Profile image URL:', cacheBustedUrl);
+          }
         }
-        setUserProfile(updatedUser);
+        setUserProfile(updatedUser || response.data.user);
       } else {
         console.log('⚠️ Failed to load profile from API, using cached user data');
         setUserProfile(user);
@@ -194,7 +205,7 @@ const ProfileScreen: React.FC = () => {
     {
       id: 'changePassword',
       title: 'Change Password',
-      icon: maroonLockIconSvg,
+      icon: isDarkMode ? darkLockIconSvg : maroonLockIconSvg,
       onPress: () => {
         showLoading();
         router.push('/screens/ChangePasswordScreen');
@@ -204,7 +215,7 @@ const ProfileScreen: React.FC = () => {
     {
       id: 'registeredVehicles',
       title: 'Registered Vehicles',
-      icon: maroonNewCarIconSvg,
+      icon: isDarkMode ? darkNewCarIconSvg : maroonNewCarIconSvg,
       onPress: () => {
         showLoading();
         router.push('/screens/RegisteredVehiclesScreen');
@@ -214,7 +225,7 @@ const ProfileScreen: React.FC = () => {
     {
       id: 'termsConditions',
       title: 'Terms & Conditions',
-      icon: maroonTestPaperIconSvg,
+      icon: isDarkMode ? darkTestPaperIconSvg : maroonTestPaperIconSvg,
       onPress: () => {
         showLoading();
         router.push('/screens/TermsAndConditionsScreen');
@@ -224,7 +235,7 @@ const ProfileScreen: React.FC = () => {
     {
       id: 'balance',
       title: 'Balance',
-      icon: maroonDebitIconSvg,
+      icon: isDarkMode ? darkDebitIconSvg : maroonDebitIconSvg,
       onPress: () => {
         showLoading();
         router.push('/screens/BalanceScreen');
@@ -234,7 +245,7 @@ const ProfileScreen: React.FC = () => {
     {
       id: 'faq',
       title: 'FAQ',
-      icon: maroonInfoIconSvg,
+      icon: isDarkMode ? darkInfoIconSvg : maroonInfoIconSvg,
       onPress: () => {
         showLoading();
         router.push('/screens/FAQScreen');
@@ -244,7 +255,7 @@ const ProfileScreen: React.FC = () => {
     {
       id: 'myFeedback',
       title: 'My Feedback',
-      icon: maroonStarIconSvg,
+      icon: isDarkMode ? darkStarIconSvg : maroonStarIconSvg,
       onPress: () => {
         showLoading();
         router.push('/screens/MyFeedbackScreen');
@@ -334,8 +345,10 @@ const ProfileScreen: React.FC = () => {
       if (response.success) {
         const latestImage = response.data?.profile_image;
         if (latestImage) {
-          const cacheBustedUrl = `${latestImage}?t=${Date.now()}`;
-          setUserProfile((prevProfile: typeof userProfile) => prevProfile ? { ...prevProfile, profile_image: cacheBustedUrl } : prevProfile);
+          const cacheBustedUrl = withCacheBust(latestImage);
+          if (cacheBustedUrl) {
+            setUserProfile((prevProfile: typeof userProfile) => prevProfile ? { ...prevProfile, profile_image: cacheBustedUrl, profile_image_url: cacheBustedUrl } : prevProfile);
+          }
         }
         // Reload profile to get updated image URL
         await loadUserProfile(true);
@@ -566,10 +579,10 @@ const ProfileScreen: React.FC = () => {
                     xml={
                       rating >= star 
                         ? `<svg width="${screenDimensions.isTablet ? 40 : 35}" height="${screenDimensions.isTablet ? 40 : 35}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                           <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#8A0000" stroke="#8A0000" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+                           <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="${ratingStarColor}" stroke="${ratingStarColor}" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
                          </svg>`
                         : `<svg width="${screenDimensions.isTablet ? 40 : 35}" height="${screenDimensions.isTablet ? 40 : 35}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                           <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="none" stroke="#8A0000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                           <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="none" stroke="${ratingStarColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
                          </svg>`
                     }
                   />
@@ -637,3 +650,4 @@ const ProfileScreen: React.FC = () => {
 // Styles are now imported from profileScreenStyles.ts
 
 export default ProfileScreen;
+

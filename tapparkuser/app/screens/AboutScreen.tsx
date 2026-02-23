@@ -10,13 +10,17 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgXml } from 'react-native-svg';
-import { tapParkLogoSvg } from '../assets/icons/index2';
+import { tapParkLogoSvg, darkTapParkLogoSvg } from '../assets/icons/index2';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme, useThemeColors } from '../../contexts/ThemeContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function AboutScreen() {
   const { user, isAuthenticated } = useAuth();
+  const colors = useThemeColors();
+  const { isDarkMode } = useTheme();
+  const styles = createStyles(colors);
 
   const handleNext = () => {
     // Navigate to home screen after signup/about
@@ -35,7 +39,7 @@ export default function AboutScreen() {
         <View style={styles.logoContainer}>
           <View style={styles.logoShadow}>
             <SvgXml 
-              xml={tapParkLogoSvg} 
+              xml={isDarkMode ? darkTapParkLogoSvg : tapParkLogoSvg} 
               width={getResponsiveSize(100)} 
               height={getResponsiveSize(137)} 
             />
@@ -57,7 +61,7 @@ export default function AboutScreen() {
           <View style={styles.cardInnerContent}>
             <View style={styles.cardHeader}>
               <View style={styles.cardIconContainer}>
-                <Ionicons name="information-circle" size={getResponsiveSize(28)} color="#8A0000" />
+                <Ionicons name="information-circle" size={getResponsiveSize(28)} color={colors.primary} />
               </View>
               <Text style={styles.aboutTitle}>About App</Text>
             </View>
@@ -85,7 +89,7 @@ export default function AboutScreen() {
           activeOpacity={0.8}
         >
           <View style={styles.arrowButtonInner}>
-            <Ionicons name="chevron-forward" size={getResponsiveSize(28)} color="#FFFFFF" />
+            <Ionicons name="chevron-forward" size={getResponsiveSize(28)} color={colors.textInverse} />
           </View>
         </TouchableOpacity>
       </View>
@@ -136,10 +140,10 @@ const getResponsiveMargin = (baseMargin: number) => {
   return baseMargin;
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   gradientBackground: {
     position: 'absolute',
@@ -147,7 +151,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.backgroundSecondary,
   },
   topSection: {
     justifyContent: 'center',
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoShadow: {
-    shadowColor: '#8A0000',
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -171,7 +175,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   header: {
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.header,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: getResponsivePadding(20),
@@ -194,7 +198,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: 'white',
+    color: colors.headerText,
     fontSize: getResponsiveFontSize(20),
     fontWeight: 'bold',
   },
@@ -213,17 +217,17 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: getResponsiveFontSize(42),
     fontWeight: '900',
-    color: '#8A0000',
+    color: colors.primary,
     lineHeight: getResponsiveFontSize(48),
     letterSpacing: 2,
-    textShadowColor: 'rgba(138, 0, 0, 0.1)',
+    textShadowColor: colors.shadow,
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   subTitle: {
     fontSize: getResponsiveFontSize(28),
     fontWeight: '700',
-    color: '#1F2937',
+    color: colors.text,
     lineHeight: getResponsiveFontSize(34),
     marginTop: getResponsiveMargin(4),
     letterSpacing: 0.5,
@@ -231,16 +235,16 @@ const styles = StyleSheet.create({
   titleUnderline: {
     width: getResponsiveSize(60),
     height: getResponsiveSize(4),
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.primary,
     marginTop: getResponsiveMargin(12),
     borderRadius: getResponsiveSize(2),
   },
   aboutCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderRadius: getResponsiveSize(20),
     paddingBottom: getResponsivePadding(80),
     elevation: 12,
-    shadowColor: '#8A0000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 8,
@@ -251,7 +255,7 @@ const styles = StyleSheet.create({
     maxWidth: screenWidth - getResponsivePadding(40),
     minHeight: isSmallScreen ? 320 : 380,
     borderWidth: 1,
-    borderColor: 'rgba(138, 0, 0, 0.1)',
+    borderColor: colors.border,
     position: 'relative',
     overflow: 'visible',
   },
@@ -264,13 +268,13 @@ const styles = StyleSheet.create({
     marginBottom: getResponsiveMargin(24),
     paddingBottom: getResponsivePadding(16),
     borderBottomWidth: 2,
-    borderBottomColor: 'rgba(138, 0, 0, 0.1)',
+    borderBottomColor: colors.border,
   },
   cardIconContainer: {
     width: getResponsiveSize(40),
     height: getResponsiveSize(40),
     borderRadius: getResponsiveSize(20),
-    backgroundColor: 'rgba(138, 0, 0, 0.1)',
+    backgroundColor: colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: getResponsiveMargin(12),
@@ -278,7 +282,7 @@ const styles = StyleSheet.create({
   aboutTitle: {
     fontSize: getResponsiveFontSize(26),
     fontWeight: '800',
-    color: '#8A0000',
+    color: colors.primary,
     letterSpacing: 0.5,
   },
   cardContent: {
@@ -287,7 +291,7 @@ const styles = StyleSheet.create({
   aboutText: {
     fontSize: getResponsiveFontSize(16),
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text,
     lineHeight: getResponsiveFontSize(26),
     marginBottom: getResponsiveMargin(18),
     flexWrap: 'wrap',
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
     borderRadius: getResponsiveSize(32),
     overflow: 'hidden',
     elevation: 12,
-    shadowColor: '#8A0000',
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -320,7 +324,7 @@ const styles = StyleSheet.create({
   arrowButtonInner: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.button,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: getResponsiveSize(32),

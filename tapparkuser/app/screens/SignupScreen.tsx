@@ -21,6 +21,7 @@ import { SvgXml } from 'react-native-svg';
 import { carIconSvg } from '../assets/icons/index2';
 import { signupStyles } from '../styles/signupStyles';
 import { useAuth } from '../../contexts/AuthContext';
+import { useThemeColors } from '../../contexts/ThemeContext';
 import ApiService from '../../services/api';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -66,6 +67,7 @@ const circleGlowSvg = `<svg width="280" height="288" viewBox="0 0 280 288" fill=
 export default function SignupScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const colors = useThemeColors();
   const pulseAnim = new Animated.Value(1);
   const scrollViewRef = React.useRef<ScrollView>(null);
 
@@ -197,9 +199,9 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['bottom']}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
           <KeyboardAvoidingView
     behavior={Platform.OS === 'ios' ? 'position' : undefined} // <-- Changed to 'position'
     style={{ flex: 1 }}
@@ -208,7 +210,7 @@ export default function SignupScreen() {
 >
             <ScrollView
               ref={scrollViewRef}
-              contentContainerStyle={styles.content}
+              contentContainerStyle={[styles.content, { backgroundColor: colors.background }]}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               bounces={false}
@@ -243,10 +245,10 @@ export default function SignupScreen() {
               <View style={styles.middleSection}>
                 <View style={styles.parkWithEaseContainer}>
                   <SvgXml xml={carIconSvg} width={getResponsiveSize(16)} height={getResponsiveSize(16)} />
-                  <Text style={styles.parkWithEaseText}>Park with ease!</Text>
+                  <Text style={[styles.parkWithEaseText, { color: colors.textSecondary }]}>Park with ease!</Text>
                 </View>
                 
-                <Text style={styles.welcomeText}>
+                <Text style={[styles.welcomeText, { color: colors.text }]}>
                   YOU ARE MAKING THE RIGHT CHOICE! 👍
                 </Text>
               </View>
@@ -255,9 +257,10 @@ export default function SignupScreen() {
               <View style={styles.inputSection}>
                 <TextInput
                   ref={schoolIdRef} // <-- Assign Ref
-                  style={styles.inputField}
+                  style={[styles.inputField, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                   placeholder="School ID:"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textMuted}
+                  selectionColor={colors.primary}
                   value={schoolId}
                   onChangeText={setSchoolId}
                   autoCapitalize="none"
@@ -267,9 +270,10 @@ export default function SignupScreen() {
                 />
                 <TextInput
                   ref={firstNameRef}
-                  style={styles.inputField}
+                  style={[styles.inputField, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                   placeholder="First Name:"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textMuted}
+                  selectionColor={colors.primary}
                   value={firstName}
                   onChangeText={setFirstName}
                   autoCapitalize="words"
@@ -279,9 +283,10 @@ export default function SignupScreen() {
                 />
                 <TextInput
                   ref={lastNameRef}
-                  style={styles.inputField}
+                  style={[styles.inputField, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                   placeholder="Last Name:"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textMuted}
+                  selectionColor={colors.primary}
                   value={lastName}
                   onChangeText={setLastName}
                   autoCapitalize="words"
@@ -291,9 +296,10 @@ export default function SignupScreen() {
                 />
                 <TextInput
                   ref={emailRef}
-                  style={styles.inputField}
+                  style={[styles.inputField, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                   placeholder="Email:"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textMuted}
+                  selectionColor={colors.primary}
                   keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
@@ -304,9 +310,10 @@ export default function SignupScreen() {
                 />
                 <TextInput
                   ref={passwordRef} // <-- Last Input
-                  style={styles.emailField}
+                  style={[styles.emailField, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
                   placeholder="Password:"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textMuted}
+                  selectionColor={colors.primary}
                   secureTextEntry
                   value={password}
                   onChangeText={setPassword}
@@ -322,18 +329,18 @@ export default function SignupScreen() {
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
                     onPress={handleGoBack}
-                    style={styles.goBackButton}
+                    style={[styles.goBackButton, { backgroundColor: colors.gray200 }]}
                   >
-                    <Text style={styles.goBackButtonText}>Go Back</Text>
+                    <Text style={[styles.goBackButtonText, { color: colors.text }]}>Go Back</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     onPress={handleSignup}
-                    style={[styles.signupButton, isLoading && { opacity: 0.7 }]}
+                    style={[styles.signupButton, { backgroundColor: colors.primary }, isLoading && { opacity: 0.7 }]}
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="#FFFFFF" size="small" />
+                      <ActivityIndicator color={colors.textInverse} size="small" />
                     ) : (
                       <Text style={styles.signupButtonText}>Sign Up</Text>
                     )}

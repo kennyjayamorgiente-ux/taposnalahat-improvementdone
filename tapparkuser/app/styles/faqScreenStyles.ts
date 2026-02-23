@@ -96,8 +96,6 @@ export const getFaqScreenStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.profileCard,
     borderTopLeftRadius: getResponsiveSize(20),
     borderTopRightRadius: getResponsiveSize(20),
-    borderWidth: 1,
-    borderColor: colors.primary,
     paddingTop: getResponsivePadding(25),
     paddingBottom: 0, // Match ProfileScreen - Add 50px to cover the gap
     paddingHorizontal: getResponsivePadding(20),

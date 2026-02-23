@@ -28,6 +28,8 @@ import {
   tapParkLogoSvg,
   maroonFavIconSvg,
   maroonTrashIconSvg,
+  darkFavIconSvg,
+  darkTrashIconSvg,
   whiteCarIconSvg,
   whiteMotorIconSvg,
   whiteEbikeIconSvg
@@ -41,6 +43,7 @@ import {
   getAdaptiveMargin 
 } from '../../hooks/use-screen-dimensions';
 import { createHistoryScreenStyles } from '../styles/historyScreenStyles';
+import { normalizeProfileImageUrl } from '../../utils/profileImage';
 
 // Now using dynamic orientation-aware responsive system
 
@@ -109,7 +112,7 @@ const HistoryScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = (user as any)?.profile_image || (user as any)?.profile_image_url;
+    const profileImageUrl = normalizeProfileImageUrl((user as any)?.profile_image || (user as any)?.profile_image_url);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {
@@ -831,13 +834,13 @@ const HistoryScreen: React.FC = () => {
                           style={styles.trashButton}
                           onPress={() => handleDeleteHistory(spot.reservation_id)}
                         >
-                          <SvgXml xml={maroonTrashIconSvg} width={getAdaptiveSize(screenDimensions, 20)} height={getAdaptiveSize(screenDimensions, 20)} />
+                          <SvgXml xml={isDarkMode ? darkTrashIconSvg : maroonTrashIconSvg} width={getAdaptiveSize(screenDimensions, 20)} height={getAdaptiveSize(screenDimensions, 20)} />
                         </TouchableOpacity>
                         <TouchableOpacity 
                           style={styles.heartButton}
                           onPress={() => handleAddToFavorites(spot.reservation_id)}
                         >
-                          <SvgXml xml={maroonFavIconSvg} width={getAdaptiveSize(screenDimensions, 20)} height={getAdaptiveSize(screenDimensions, 20)} />
+                          <SvgXml xml={isDarkMode ? darkFavIconSvg : maroonFavIconSvg} width={getAdaptiveSize(screenDimensions, 20)} height={getAdaptiveSize(screenDimensions, 20)} />
                         </TouchableOpacity>
                         <TouchableOpacity 
                           style={styles.bookButton}

@@ -94,8 +94,6 @@ export const getRegisteredVehiclesScreenStyles = (colors: ThemeColors) => StyleS
     backgroundColor: colors.profileCard,
     borderTopLeftRadius: getResponsiveSize(20),
     borderTopRightRadius: getResponsiveSize(20),
-    borderWidth: 1,
-    borderColor: colors.primary,
     paddingTop: getResponsivePadding(25),
     paddingBottom: 0,
     paddingHorizontal: getResponsivePadding(20),

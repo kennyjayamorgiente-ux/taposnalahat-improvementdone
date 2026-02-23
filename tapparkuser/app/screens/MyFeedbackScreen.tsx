@@ -18,10 +18,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import SharedHeader from '../../components/SharedHeader';
 import { useAuth } from '../../contexts/AuthContext';
-import { useThemeColors } from '../../contexts/ThemeContext';
+import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
 import {
   whiteStarIconSvg,
   maroonStarIconSvg,
+  darkStarIconSvg,
 } from '../assets/icons/index2';
 import { ApiService } from '../../services/api';
 import { 
@@ -58,6 +59,7 @@ const MyFeedbackScreen: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
   const colors = useThemeColors();
+  const { isDarkMode } = useTheme();
   const screenDimensions = useScreenDimensions();
   const [feedbackList, setFeedbackList] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,7 +207,7 @@ const MyFeedbackScreen: React.FC = () => {
       stars.push(
         <View key={i} style={{ marginRight: 2 }}>
           <SvgXml
-            xml={i <= rating ? maroonStarIconSvg : whiteStarIconSvg}
+            xml={i <= rating ? (isDarkMode ? darkStarIconSvg : maroonStarIconSvg) : whiteStarIconSvg}
             width={size}
             height={size}
           />

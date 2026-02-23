@@ -454,20 +454,20 @@ export const getActiveParkingScreenStyles = (colors: ThemeColors) => StyleSheet.
   emptyStateTitle: {
     fontSize: getResponsiveFontSize(24),
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 16,
   },
   emptyStateMessage: {
     fontSize: getResponsiveFontSize(16),
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 24,
   },
   emptyStateSubMessage: {
     fontSize: getResponsiveFontSize(14),
-    color: '#999',
+    color: colors.textMuted,
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 20,
@@ -505,7 +505,7 @@ export const getActiveParkingScreenStyles = (colors: ThemeColors) => StyleSheet.
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center', // Center content vertically (cross axis)
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.card,
     borderRadius: getResponsiveSize(8),
     padding: getResponsivePadding(5), // Almost no padding - MAXIMUM SPACE!
     paddingBottom: getResponsivePadding(5), // Almost no padding
@@ -574,7 +574,7 @@ export const getActiveParkingScreenStyles = (colors: ThemeColors) => StyleSheet.
   layoutTitle: {
     fontSize: getResponsiveFontSize(18),
     fontWeight: 'bold',
-    color: '#333333',
+    color: colors.text,
     flex: 1,
   },
   refreshButton: {

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { View, Text, ActivityIndicator } from 'react-native';
+import { useThemeColors } from '../contexts/ThemeContext';
 
 interface ProtectedScreenProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ export default function ProtectedScreen({
   fallbackRoute = '/screens/HomeScreen' 
 }: ProtectedScreenProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const colors = useThemeColors();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -32,9 +34,9 @@ export default function ProtectedScreen({
   // Show loading while checking permissions
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#800000" />
-        <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ marginTop: 10, color: colors.textSecondary }}>Loading...</Text>
       </View>
     );
   }

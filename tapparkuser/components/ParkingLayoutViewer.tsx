@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { ApiService } from '../services/api';
+import { useThemeColors } from '../contexts/ThemeContext';
 
 interface ParkingLayoutViewerProps {
   areaId: number;
@@ -14,6 +15,7 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
   onLayoutLoaded,
   onError
 }) => {
+  const colors = useThemeColors();
   const [layoutSvg, setLayoutSvg] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -48,14 +50,14 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
       // In a real implementation, you would parse the layout_data and convert it to SVG
       const placeholderSvg = `
         <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100%" height="100%" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
-          <text x="50%" y="50%" text-anchor="middle" font-family="Arial" font-size="24" fill="#666">
+          <rect width="100%" height="100%" fill="${colors.backgroundSecondary}" stroke="${colors.border}" stroke-width="2"/>
+          <text x="50%" y="50%" text-anchor="middle" font-family="Arial" font-size="24" fill="${colors.text}">
             ${areaLayout.areaName} - Floor ${areaLayout.floor}
           </text>
-          <text x="50%" y="60%" text-anchor="middle" font-family="Arial" font-size="16" fill="#999">
+          <text x="50%" y="60%" text-anchor="middle" font-family="Arial" font-size="16" fill="${colors.textSecondary}">
             Layout Data Available (${areaLayout.layoutDataLength} characters)
           </text>
-          <text x="50%" y="70%" text-anchor="middle" font-family="Arial" font-size="14" fill="#999">
+          <text x="50%" y="70%" text-anchor="middle" font-family="Arial" font-size="14" fill="${colors.textMuted}">
             Created: ${new Date(areaLayout.createdAt).toLocaleDateString()}
           </text>
         </svg>
@@ -84,12 +86,13 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center',
-        padding: 20 
+        padding: 20,
+        backgroundColor: colors.background,
       }}>
-        <ActivityIndicator size="large" color="#8A0000" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={{ 
           marginTop: 10, 
-          color: '#666',
+          color: colors.textSecondary,
           fontSize: 16 
         }}>
           Loading parking layout...
@@ -104,10 +107,11 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center',
-        padding: 20 
+        padding: 20,
+        backgroundColor: colors.background,
       }}>
         <Text style={{ 
-          color: '#FF4444',
+          color: colors.error,
           fontSize: 16,
           textAlign: 'center',
           marginBottom: 10
@@ -116,7 +120,7 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
         </Text>
         <Text 
           style={{ 
-            color: '#8A0000',
+            color: colors.primary,
             fontSize: 14,
             textDecorationLine: 'underline'
           }}
@@ -134,10 +138,11 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center',
-        padding: 20 
+        padding: 20,
+        backgroundColor: colors.background,
       }}>
         <Text style={{ 
-          color: '#666',
+          color: colors.textSecondary,
           fontSize: 16,
           textAlign: 'center'
         }}>
@@ -152,7 +157,7 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
       <Text style={{ 
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#8A0000',
+        color: colors.primary,
         textAlign: 'center',
         marginBottom: 10,
         paddingHorizontal: 20
@@ -162,7 +167,7 @@ const ParkingLayoutViewer: React.FC<ParkingLayoutViewerProps> = ({
       
       <View style={{ 
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: colors.backgroundSecondary,
         borderRadius: 10,
         margin: 10,
         overflow: 'hidden'

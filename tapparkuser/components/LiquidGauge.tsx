@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, ClipPath, Defs, Path } from 'react-native-svg';
+import { useThemeColors } from '../contexts/ThemeContext';
 
 type GaugeConfig = {
   [key: string]: unknown;
@@ -25,8 +26,9 @@ const LiquidGauge: React.FC<LiquidGaugeProps> = ({
   height = 150,
   config,
 }) => {
-  const circleColor = config?.circleColor ?? '#D1D5DB';
-  const waveColor = config?.waveColor ?? '#178BCA';
+  const colors = useThemeColors();
+  const circleColor = config?.circleColor ?? colors.border;
+  const waveColor = config?.waveColor ?? colors.primary;
   const circleThickness = config?.circleThickness ?? 0.09;
   const waveAnimateTime = config?.waveAnimateTime ?? 1500;
 

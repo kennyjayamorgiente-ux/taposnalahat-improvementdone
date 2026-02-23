@@ -40,6 +40,10 @@ import {
   profitIconSvg, 
   checkboxIconSvg,
   doubleUpIconSvg,
+  darkLineGraphIconSvg,
+  darkProfitIconSvg,
+  darkCheckboxIconSvg,
+  darkDoubleUpIconSvg,
   whiteCarIconSvg,
   whiteMotorIconSvg,
   whiteEbikeIconSvg
@@ -3296,7 +3300,7 @@ export default function HomeScreen() {
         {/* Registered Vehicle Section */}
         <View style={homeScreenStyles.section}>
           <View style={homeScreenStyles.sectionHeader}>
-            <SvgXml xml={lineGraphIconSvg} width={16} height={16} />
+            <SvgXml xml={isDarkMode ? darkLineGraphIconSvg : lineGraphIconSvg} width={16} height={16} />
             <Text style={homeScreenStyles.sectionTitle}>Registered Vehicle</Text>
           </View>
           
@@ -3367,7 +3371,7 @@ export default function HomeScreen() {
                   <View style={homeScreenStyles.vehicleInfoContainer}>
                     <View>
                       <Text style={homeScreenStyles.vehicleLabel}>Brand and Model</Text>
-                      <Text style={homeScreenStyles.vehicleValue}>{vehicle.brand || 'N/A'} - N/A</Text>
+                      <Text style={homeScreenStyles.vehicleValue}>{vehicle.brand || 'N/A'} - {vehicle.model || 'N/A'}</Text>
                     </View>
                     <View>
                       <Text style={homeScreenStyles.vehicleLabel}>Display Name</Text>
@@ -3380,12 +3384,30 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
               ))}
+              <TouchableOpacity
+                style={[
+                  homeScreenStyles.vehicleCard,
+                  {
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderStyle: 'dashed',
+                    borderWidth: 1.5,
+                    borderColor: colors.primary,
+                  },
+                ]}
+                onPress={handleAddVehicle}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add-circle-outline" size={32} color={colors.primary} />
+                <Text style={[homeScreenStyles.vehicleLabel, { marginTop: 8, textAlign: 'center' }]}>Add Vehicle</Text>
+                <Text style={[homeScreenStyles.vehicleValue, { textAlign: 'center' }]}>Create new vehicle</Text>
+              </TouchableOpacity>
             </ScrollView>
           )}
         </View>
 
         {/* Scroll Indicator for Registered Vehicles - Only show when 3+ vehicles and content overflows */}
-        {!isLoadingVehicles && vehicles.length >= 3 && canScrollVehicles && (
+        {!isLoadingVehicles && (vehicles.length + 1) >= 3 && canScrollVehicles && (
           <View style={homeScreenStyles.progressSection}>
             <View style={homeScreenStyles.progressContainer}>
               <View style={homeScreenStyles.progressTrack}>
@@ -3409,7 +3431,7 @@ export default function HomeScreen() {
         {/* Frequently Used Parking Space Section */}
         <View style={homeScreenStyles.section}>
           <View style={homeScreenStyles.sectionHeader}>
-            <SvgXml xml={profitIconSvg} width={16} height={16} />
+            <SvgXml xml={isDarkMode ? darkProfitIconSvg : profitIconSvg} width={16} height={16} />
             <Text style={homeScreenStyles.sectionTitle}>Frequently used parking space</Text>
           </View>
           
@@ -3508,7 +3530,7 @@ export default function HomeScreen() {
 
           {/* See All Spots Button */}
           <TouchableOpacity style={homeScreenStyles.seeAllButton} onPress={handleOpenFrequentSpotsModal}>
-            <SvgXml xml={doubleUpIconSvg} width={16} height={16} />
+            <SvgXml xml={isDarkMode ? darkDoubleUpIconSvg : doubleUpIconSvg} width={16} height={16} />
             <Text style={homeScreenStyles.seeAllText}>Frequent spots</Text>
           </TouchableOpacity>
         </View>
@@ -3538,7 +3560,7 @@ export default function HomeScreen() {
         {/* Select Parking Area Section */}
         <View style={homeScreenStyles.section}>
           <View style={homeScreenStyles.sectionHeader}>
-            <SvgXml xml={checkboxIconSvg} width={16} height={16} />
+            <SvgXml xml={isDarkMode ? darkCheckboxIconSvg : checkboxIconSvg} width={16} height={16} />
             <Text style={homeScreenStyles.sectionTitle}>Select Parking Area</Text>
           </View>
           
@@ -3860,11 +3882,11 @@ export default function HomeScreen() {
       >
         <View style={homeScreenStyles.modalOverlay}>
           <View style={[homeScreenStyles.modalContainer, { 
-            maxHeight: isTablet ? screenHeight * 0.95 : screenHeight * 0.98,
-            height: isTablet ? screenHeight * 0.95 : screenHeight * 0.98,
-            width: isTablet ? Math.min(screenWidth * 0.95, svgDimensions.width + 100) : Math.min(screenWidth * 0.98, svgDimensions.width + 100),
-            maxWidth: Math.max(svgDimensions.width + 100, 400), // Dynamic maxWidth based on SVG size
-            padding: getResponsivePadding(20),
+            maxHeight: screenHeight * 0.84,
+            height: screenHeight * 0.84,
+            width: Math.min(screenWidth * 0.92, 1000),
+            maxWidth: screenWidth * 0.92,
+            padding: getResponsivePadding(16),
           }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: getResponsiveMargin(16) }}>
               <View style={{ flex: 1, marginRight: getResponsiveMargin(10) }}>

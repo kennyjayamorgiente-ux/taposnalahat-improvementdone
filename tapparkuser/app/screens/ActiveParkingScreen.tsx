@@ -307,7 +307,6 @@ const ActiveParkingScreen: React.FC = () => {
   const [elapsedTime, setElapsedTime] = useState(0); // Track elapsed time in seconds
   const [remainingBalance, setRemainingBalance] = useState(0); // Track remaining balance in hours
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [textColor, setTextColor] = useState('#000000'); // Default to black
   
   // Grace period modals
   const [showGracePeriodWarning, setShowGracePeriodWarning] = useState(false);
@@ -3580,7 +3579,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
               console.log('🎯 ActiveParkingScreen: Retrying booking fetch...');
             }}
           >
-            <Text style={[activeParkingScreenStyles.goBackButtonText, { color: '#FFFFFF' }]}>Try Again</Text>
+            <Text style={[activeParkingScreenStyles.goBackButtonText, { color: colors.textInverse }]}>Try Again</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -3620,7 +3619,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
         rightComponent={
           isTimerRunning && bookingData?.bookingStatus === 'active' ? (
             <View style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.2)',
               paddingHorizontal: 6,
               paddingVertical: 3,
               borderRadius: 4,
@@ -3648,7 +3647,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
              'Parking Time'}
           </Text>
           {activeTab === 'ticket' && isTimerRunning && bookingData?.bookingStatus === 'active' && (
-            <Text style={activeParkingScreenStyles.durationText}>
+            <Text style={[activeParkingScreenStyles.durationText, { color: isDarkMode ? colors.text : '#000000' }]}>
               {formatElapsedTime(elapsedTime)}
             </Text>
           )}
@@ -3892,11 +3891,11 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                       }
                     }}
                   >
-                    <Ionicons name="refresh" size={16} color="#FFFFFF" />
+                    <Ionicons name="refresh" size={16} color={colors.textInverse} />
                     <Text style={activeParkingScreenStyles.refreshButtonText}> Refresh</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[activeParkingScreenStyles.refreshButton, { backgroundColor: '#FF9500' }]}
+                    style={[activeParkingScreenStyles.refreshButton, { backgroundColor: colors.warning }]}
                     onPress={() => {
                       setScale(1.0); // Reset to show whole map
                       savedScaleRef.current = 1.0;
@@ -3948,7 +3947,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                       }
                     }}
                   >
-                    <Ionicons name="expand" size={16} color="#FFFFFF" />
+                    <Ionicons name="expand" size={16} color={colors.textInverse} />
                     <Text style={activeParkingScreenStyles.refreshButtonText}> Reset</Text>
                   </TouchableOpacity>
                 </View>
@@ -4309,7 +4308,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                                   top: top || 0,
                                   width: width || 50,
                                   height: height || 50,
-                                  backgroundColor: backgroundColor || '#34C759',
+                                  backgroundColor: backgroundColor || 'rgba(52, 199, 89, 0.2)',
                                   borderWidth: finalIsUserBooked ? 2 : (isCapacitySection ? 2 : 1),
                                   borderColor: borderColor || '#34C759',
                                   borderRadius: isCapacitySection ? 4 : 3,
@@ -4396,7 +4395,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                   style={activeParkingScreenStyles.refreshButton}
                   onPress={() => loadSvgContent(true)}
                 >
-                  <Ionicons name="refresh" size={16} color="#FFFFFF" />
+                  <Ionicons name="refresh" size={16} color={colors.textInverse} />
                   <Text style={activeParkingScreenStyles.refreshButtonText}> Refresh</Text>
                 </TouchableOpacity>
               </View>
@@ -4425,7 +4424,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 }} />
                 <Text style={{
                   fontSize: getResponsiveFontSize(11),
-                  color: colors.textSecondary || '#666666',
+                  color: colors.textSecondary,
                   marginLeft: getResponsiveMargin(6),
                 }}>Your Spot</Text>
               </View>
@@ -4434,14 +4433,14 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 <View style={{
                   width: getResponsiveSize(16),
                   height: getResponsiveSize(16),
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  backgroundColor: isDarkMode ? colors.card : 'rgba(255, 255, 255, 0.8)',
                   borderWidth: 1,
-                  borderColor: '#dee2e6',
+                  borderColor: colors.border,
                   borderRadius: getResponsiveSize(3),
                 }} />
                 <Text style={{
                   fontSize: getResponsiveFontSize(11),
-                  color: colors.textSecondary || '#666666',
+                  color: colors.textSecondary,
                   marginLeft: getResponsiveMargin(6),
                 }}>Capacity Section</Text>
               </View>
@@ -4457,7 +4456,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 }} />
                 <Text style={{
                   fontSize: getResponsiveFontSize(11),
-                  color: colors.textSecondary || '#666666',
+                  color: colors.textSecondary,
                   marginLeft: getResponsiveMargin(6),
                 }}>50%+ Full</Text>
               </View>
@@ -4473,7 +4472,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 }} />
                 <Text style={{
                   fontSize: getResponsiveFontSize(11),
-                  color: colors.textSecondary || '#666666',
+                  color: colors.textSecondary,
                   marginLeft: getResponsiveMargin(6),
                 }}>95%+ Full</Text>
               </View>
@@ -4491,13 +4490,13 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 }}>
                   <Text style={{
                     fontSize: getResponsiveFontSize(10),
-                    color: 'rgba(52, 199, 89, 0.8)',
+                    color: '#34C759',
                     fontWeight: 'bold',
                   }}>↓</Text>
                 </View>
                 <Text style={{
                   fontSize: getResponsiveFontSize(11),
-                  color: colors.textSecondary || '#666666',
+                  color: colors.textSecondary,
                   marginLeft: getResponsiveMargin(6),
                 }}>Entry</Text>
               </View>
@@ -4515,13 +4514,13 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 }}>
                   <Text style={{
                     fontSize: getResponsiveFontSize(10),
-                    color: 'rgba(255, 59, 48, 0.8)',
+                    color: '#FF3B30',
                     fontWeight: 'bold',
                   }}>↑</Text>
                 </View>
                 <Text style={{
                   fontSize: getResponsiveFontSize(11),
-                  color: colors.textSecondary || '#666666',
+                  color: colors.textSecondary,
                   marginLeft: getResponsiveMargin(6),
                 }}>Exit</Text>
               </View>
@@ -4559,16 +4558,16 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                   
                   {/* Timer Content */}
                   <View style={activeParkingScreenStyles.timerContent}>
-                    <Text style={[activeParkingScreenStyles.timerText, { color: textColor }]}>
+                    <Text style={[activeParkingScreenStyles.timerText, { color: isDarkMode ? colors.text : '#000000' }]}>
                       {parkingEndTime ? 
                         formatTime(Math.floor((parkingEndTime - (parkingStartTime.current || 0)) / 1000)) : 
                         formatTime(elapsedTime)
                       }
                     </Text>
                     <View style={activeParkingScreenStyles.timerLabels}>
-                      <Text style={[activeParkingScreenStyles.timerLabel, { color: textColor }]}>hour</Text>
-                      <Text style={[activeParkingScreenStyles.timerLabel, { color: textColor }]}>min</Text>
-                      <Text style={[activeParkingScreenStyles.timerLabel, { color: textColor }]}>sec</Text>
+                      <Text style={[activeParkingScreenStyles.timerLabel, { color: isDarkMode ? colors.text : '#000000' }]}>hour</Text>
+                      <Text style={[activeParkingScreenStyles.timerLabel, { color: isDarkMode ? colors.text : '#000000' }]}>min</Text>
+                      <Text style={[activeParkingScreenStyles.timerLabel, { color: isDarkMode ? colors.text : '#000000' }]}>sec</Text>
                     </View>
                   </View>
                 </View>
@@ -4709,7 +4708,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                             {/* Progress Bar */}
                             <View style={{
                               height: 24,
-                              backgroundColor: '#E5E7EB',
+                              backgroundColor: colors.border,
                               borderRadius: 12,
                               overflow: 'hidden',
                               marginTop: 8,
@@ -4739,20 +4738,20 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
                               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 12, height: 12, backgroundColor: '#34C759', borderRadius: 2, marginRight: 4 }} />
-                                <Text style={{ fontSize: 12, color: '#666' }}>Available: {availableCount}</Text>
+                                <Text style={{ fontSize: 12, color: colors.textSecondary }}>Available: {availableCount}</Text>
                               </View>
                               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 12, height: 12, backgroundColor: '#FFCC00', borderRadius: 2, marginRight: 4 }} />
-                                <Text style={{ fontSize: 12, color: '#666' }}>Reserved: {reservedCount}</Text>
+                                <Text style={{ fontSize: 12, color: colors.textSecondary }}>Reserved: {reservedCount}</Text>
                               </View>
                               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 12, height: 12, backgroundColor: '#FF3B30', borderRadius: 2, marginRight: 4 }} />
-                                <Text style={{ fontSize: 12, color: '#666' }}>Occupied: {occupiedCount}</Text>
+                                <Text style={{ fontSize: 12, color: colors.textSecondary }}>Occupied: {occupiedCount}</Text>
                               </View>
                             </View>
                             
                             {/* Statistics */}
-                            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+                            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
                               <View style={activeParkingScreenStyles.spotModalRow}>
                                 <Text style={activeParkingScreenStyles.spotModalLabel}>Total Capacity:</Text>
                                 <Text style={activeParkingScreenStyles.spotModalValue}>
@@ -4787,7 +4786,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                       
                       {selectedSpot.isCurrentSpot && (
                         <View style={[activeParkingScreenStyles.spotModalRow, { marginTop: 12 }]}>
-                          <Text style={[activeParkingScreenStyles.spotModalValue, { color: '#007AFF', fontWeight: 'bold' }]}>
+                          <Text style={[activeParkingScreenStyles.spotModalValue, { color: colors.info, fontWeight: 'bold' }]}>
                             ✓ You have a booking in this section
                           </Text>
                         </View>
@@ -4840,7 +4839,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                             {
                               color: selectedSpot.status === 'available' ? '#34C759' :
                                      selectedSpot.status === 'occupied' ? '#FF3B30' :
-                                     selectedSpot.status === 'reserved' ? '#FFCC00' : '#666'
+                                     selectedSpot.status === 'reserved' ? '#FFCC00' : colors.textSecondary
                             }
                           ]}>
                             {selectedSpot.status.charAt(0).toUpperCase() + selectedSpot.status.slice(1)}
@@ -4850,7 +4849,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                       
                       {selectedSpot.isCurrentSpot && (
                         <View style={activeParkingScreenStyles.spotModalRow}>
-                          <Text style={[activeParkingScreenStyles.spotModalValue, { color: '#8A0000', fontWeight: 'bold' }]}>
+                          <Text style={[activeParkingScreenStyles.spotModalValue, { color: colors.primary, fontWeight: 'bold' }]}>
                             ✓ This is your reserved parking spot
                           </Text>
                         </View>
@@ -4950,18 +4949,18 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                       borderRadius: 8, 
                       marginTop: 8,
                       borderLeftWidth: 4,
-                      borderLeftColor: '#FFC107'
+                      borderLeftColor: colors.warning
                     }]}>
                       <View style={{ flex: 1 }}>
                         <Text style={[activeParkingScreenStyles.parkingEndDetailLabel, { 
-                          color: '#FF9800', 
+                          color: colors.warning, 
                           fontWeight: 'bold',
                           marginBottom: 4 
                         }]}>
                           ⚠️ Penalty Notice
                         </Text>
                         <Text style={[activeParkingScreenStyles.parkingEndDetailValue, { 
-                          color: '#F57C00',
+                          color: colors.warning,
                           fontSize: getResponsiveFontSize(12)
                         }]}>
                           You exceeded your balance by {formatHoursToHHMM(parkingEndDetails.penaltyHours)} hr. This penalty will be deducted from your next subscription plan.
@@ -5006,7 +5005,7 @@ const formatHoursToHHMM = (decimalHours: number): string => {
           <View style={activeParkingScreenStyles.modalOverlay}>
             <View style={activeParkingScreenStyles.gracePeriodModalContainer}>
               <View style={activeParkingScreenStyles.gracePeriodModalHeader}>
-                <Ionicons name="warning" size={32} color="#FF9500" />
+                <Ionicons name="warning" size={32} color={colors.warning} />
                 <Text style={activeParkingScreenStyles.gracePeriodModalTitle}>
                   ⚠️ Reservation Created!
                 </Text>

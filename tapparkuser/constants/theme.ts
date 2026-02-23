@@ -15,29 +15,29 @@ import { Platform } from 'react-native';
 // Root Theme Colors - Complete color palette for the app
 export const AppTheme = {
   light: {
-    // Primary colors
-    primary: '#8A0000',
-    primaryDark: '#6A0000',
-    primaryLight: '#AA2020',
+    // Primary brand colors
+    primary: '#800000',
+    primaryDark: '#5E0000',
+    primaryLight: '#9A1A1A',
     
-    // Background colors
-    background: '#FFFFFF',
-    backgroundSecondary: '#F9FAFB',
+    // Background colors (clean light mode)
+    background: '#F5F5F5',
+    backgroundSecondary: '#EFEFEF',
     card: '#FFFFFF',
-    profileCard: '#E5E5E5', // Darker gray for profile cards
-    cardBorder: '#E5E7EB',
+    profileCard: '#FFFFFF',
+    cardBorder: '#D9D9D9',
     
     // Text colors
-    text: '#11181C',
-    textSecondary: '#687076',
-    textMuted: '#9CA3AF',
+    text: '#1F1F1F',
+    textSecondary: '#383838',
+    textMuted: '#6F6F6F',
     textInverse: '#FFFFFF',
     
     // UI element colors
-    header: '#8A0000',
+    header: '#800000',
     headerText: '#FFFFFF',
-    divider: '#E5E7EB',
-    border: '#D1D5DB',
+    divider: '#D9D9D9',
+    border: '#D0D0D0',
     
     // Status colors
     success: '#4CAF50',
@@ -46,19 +46,19 @@ export const AppTheme = {
     info: '#2196F3',
     
     // Interactive colors
-    button: '#8A0000',
+    button: '#800000',
     buttonText: '#FFFFFF',
-    buttonSecondary: '#F3F4F6',
-    buttonSecondaryText: '#11181C',
+    buttonSecondary: '#EFEFEF',
+    buttonSecondaryText: '#383838',
     
     // Icon colors
-    icon: '#687076',
-    iconActive: '#8A0000',
+    icon: '#383838',
+    iconActive: '#800000',
     
     // Drawer/Sidebar
     drawer: '#FFFFFF',
-    drawerText: '#8A0000',
-    drawerActive: '#8A0000',
+    drawerText: '#383838',
+    drawerActive: '#C60000',
     drawerActiveText: '#FFFFFF',
     
     // Overlay
@@ -66,81 +66,81 @@ export const AppTheme = {
     shadow: 'rgba(0, 0, 0, 0.1)',
     
     // Gray scale
-    gray50: '#F9FAFB',
-    gray100: '#F3F4F6',
-    gray200: '#E5E7EB',
-    gray300: '#D1D5DB',
-    gray400: '#9CA3AF',
-    gray500: '#6B7280',
-    gray600: '#4B5563',
-    gray700: '#374151',
-    gray800: '#1F2937',
-    gray900: '#111827',
+    gray50: '#F7F7F7',
+    gray100: '#EFEFEF',
+    gray200: '#E1E1E1',
+    gray300: '#D0D0D0',
+    gray400: '#B0B0B0',
+    gray500: '#8F8F8F',
+    gray600: '#6F6F6F',
+    gray700: '#575757',
+    gray800: '#464646',
+    gray900: '#383838',
   },
   dark: {
-    // Primary colors (maroon theme) - Updated from new palette
-    primary: '#800000',              // Base Maroon
-    primaryDark: '#cc0000',          // Maroon Dark
-    primaryLight: '#ff4444',         // Dark Mode Maroon (lighter)
+    // Primary brand colors
+    primary: '#D80000',
+    primaryDark: '#960000',
+    primaryLight: '#FF3B3B',
     
-    // Background colors - Updated with new dark mode palette
-    background: '#121212',           // Primary Background (Screen Base) - Deep Dark Gray
-    backgroundSecondary: '#2C2C2E',  // Profile Card Backdrop - Mid-Tone Dark Gray
-    card: '#1E1E1E',                 // Card Surface - Slightly Lighter Dark Gray
-    profileCard: '#1E1E1E',          // Profile Card Surface - Same as card in dark mode
-    cardBorder: 'rgba(128, 0, 0, 0.25)', // Border (25% maroon)
+    // Background colors (based on #383838 dark mode reference)
+    background: '#2F2F2F',
+    backgroundSecondary: '#383838',
+    card: '#404040',
+    profileCard: '#404040',
+    cardBorder: '#4A4A4A',
     
     // Text colors
-    text: '#e8d4d4',                 // Main Text (Light pink/beige)
-    textSecondary: '#a68a8a',        // Secondary Text (Muted pink/gray)
-    textMuted: '#a68a8a',            // Muted Text
-    textInverse: '#1a1a1a',          // Inverse Text
+    text: '#FFFFFF',
+    textSecondary: '#E0E0E0',
+    textMuted: '#C7C7C7',
+    textInverse: '#FFFFFF',
     
     // UI element colors
-    header: '#8A0000',               // Nav Background (Same as light mode)
-    headerText: '#FFFFFF',           // Header Text (Same as light mode)
-    divider: 'rgba(128, 0, 0, 0.2)', // Divider
-    border: 'rgba(128, 0, 0, 0.25)', // Border (25% maroon)
+    header: '#383838',
+    headerText: '#FFFFFF',
+    divider: '#4A4A4A',
+    border: '#4A4A4A',
     
     // Status colors
     success: '#4CAF50',
-    error: '#ff6666',                // Maroon Light (for error/hover states)
+    error: '#FF6666',
     warning: '#FFB84D',
     info: '#4A9EFF',
     
     // Interactive colors
-    button: '#661f1f',               // Active State (Medium dark maroon)
-    buttonText: '#ffb3b3',           // Active Text (Bright light pink)
-    buttonSecondary: '#3a2a2a',
-    buttonSecondaryText: '#e8d4d4',
+    button: '#D80000',
+    buttonText: '#FFFFFF',
+    buttonSecondary: '#4A4A4A',
+    buttonSecondaryText: '#FFFFFF',
     
     // Icon colors
-    icon: '#d4a5a5',                 // Nav Text (Light pink)
-    iconActive: '#ffb3b3',           // Active Text (Bright light pink)
+    icon: '#E0E0E0',
+    iconActive: '#FFFFFF',
     
     // Drawer/Sidebar
-    drawer: '#4a1a1a',               // Nav Background (Dark maroon)
-    drawerText: '#d4a5a5',           // Nav Text (Light pink)
-    drawerActive: '#661f1f',         // Active State (Medium dark maroon)
-    drawerActiveText: '#ffb3b3',     // Active Text (Bright light pink)
+    drawer: '#2F2F2F',
+    drawerText: '#FFFFFF',
+    drawerActive: '#D80000',
+    drawerActiveText: '#FFFFFF',
     
     // Overlay
     overlay: 'rgba(0, 0, 0, 0.7)',
-    shadow: 'rgba(128, 0, 0, 0.15)', // Shadow (15% maroon)
+    shadow: 'rgba(0, 0, 0, 0.25)',
     
-    // Gray scale - Updated with new palette
-    gray: '#666666',                 // Gray
-    grayLight: '#999999',            // Gray Light
-    gray50: '#2a1f1f',
-    gray100: '#3a2a2a',
-    gray200: '#4a1a1a',
-    gray300: '#5a2525',
-    gray400: '#6a2f2f',
-    gray500: '#666666',              // Gray
-    gray600: '#7a3a3a',
-    gray700: '#8a4545',
-    gray800: '#999999',              // Gray Light
-    gray900: '#aa5a5a',
+    // Gray scale
+    gray: '#383838',
+    grayLight: '#9A9A9A',
+    gray50: '#2D2D2D',
+    gray100: '#333333',
+    gray200: '#383838',
+    gray300: '#444444',
+    gray400: '#555555',
+    gray500: '#666666',
+    gray600: '#777777',
+    gray700: '#888888',
+    gray800: '#9A9A9A',
+    gray900: '#B5B5B5',
   },
 };
 

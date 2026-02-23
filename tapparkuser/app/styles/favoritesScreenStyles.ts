@@ -108,8 +108,6 @@ export const getFavoritesScreenStyles = (colors: ThemeColors) => StyleSheet.crea
     backgroundColor: colors.profileCard,
     borderTopLeftRadius: getResponsiveSize(20), // Match ProfileScreen
     borderTopRightRadius: getResponsiveSize(20), // Match ProfileScreen
-    borderWidth: 1,
-    borderColor: colors.primary,
     paddingTop: getResponsivePadding(25),
     paddingBottom: 0,
     paddingHorizontal: getResponsivePadding(20),

@@ -108,8 +108,6 @@ export const getBalanceScreenStyles = (colors: ThemeColors) => StyleSheet.create
     backgroundColor: colors.profileCard,
     borderTopLeftRadius: getResponsiveSize(20),
     borderTopRightRadius: getResponsiveSize(20),
-    borderWidth: 1,
-    borderColor: colors.primary,
     paddingTop: getResponsivePadding(10),
     paddingBottom: 0,
     paddingHorizontal: getResponsivePadding(20),

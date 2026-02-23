@@ -22,6 +22,7 @@ import { SvgXml } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SharedHeader from '../../components/SharedHeader';
 import ApiService from '../../services/api';
+import { useThemeColors } from '../../contexts/ThemeContext';
 import { addVehicleScreenStyles } from '../styles/addVehicleScreenStyles';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -101,6 +102,7 @@ const VEHICLE_TYPES = [
 
 export default function AddVehicleScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
   const [vehicleType, setVehicleType] = useState('');
   const [vehicleColor, setVehicleColor] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
@@ -277,7 +279,7 @@ export default function AddVehicleScreen() {
 
 
   return (
-    <View style={addVehicleScreenStyles.container}>
+    <View style={[addVehicleScreenStyles.container, { backgroundColor: colors.background }]}>
       <SharedHeader title="Add Vehicle" />
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -288,7 +290,7 @@ export default function AddVehicleScreen() {
         >
           <ScrollView
             ref={scrollViewRef}
-            contentContainerStyle={addVehicleScreenStyles.scrollContent}
+            contentContainerStyle={[addVehicleScreenStyles.scrollContent, { backgroundColor: colors.background }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             bounces={false}
@@ -318,7 +320,7 @@ export default function AddVehicleScreen() {
 
           {/* Middle Section - Text */}
           <View style={addVehicleScreenStyles.middleSection}>
-            <Text style={addVehicleScreenStyles.welcomeText}>
+            <Text style={[addVehicleScreenStyles.welcomeText, { color: colors.text }]}>
               ADD YOUR VEHICLE
             </Text>
           </View>
@@ -329,6 +331,7 @@ export default function AddVehicleScreen() {
             <TouchableOpacity 
               style={[
                 addVehicleScreenStyles.dropdownContainer,
+                { backgroundColor: colors.card },
                 errors.vehicleType && addVehicleScreenStyles.errorInput
               ]}
               onPress={() => {
@@ -339,9 +342,10 @@ export default function AddVehicleScreen() {
               }}
               activeOpacity={0.7}
             >
-              <View style={addVehicleScreenStyles.dropdownHeader}>
+              <View style={[addVehicleScreenStyles.dropdownHeader, { backgroundColor: colors.card }]}>
                 <Text style={[
-                  addVehicleScreenStyles.dropdownText, 
+                  addVehicleScreenStyles.dropdownText,
+                  { color: colors.text },
                   !vehicleType && addVehicleScreenStyles.placeholderText,
                   errors.vehicleType && addVehicleScreenStyles.errorText
                 ]}>
@@ -350,7 +354,7 @@ export default function AddVehicleScreen() {
                 <Ionicons 
                   name="chevron-down" 
                   size={20} 
-                  color={errors.vehicleType ? "#FF3B30" : "#800000"}
+                  color={errors.vehicleType ? "#FF3B30" : colors.primary}
                   style={[
                     addVehicleScreenStyles.chevronIcon,
                     { transform: [{ rotate: isDropdownVisible ? '180deg' : '0deg' }] }
@@ -365,12 +369,13 @@ export default function AddVehicleScreen() {
               )}
               
               {isDropdownVisible && (
-                <View style={addVehicleScreenStyles.dropdownContent}>
+                <View style={[addVehicleScreenStyles.dropdownContent, { backgroundColor: colors.backgroundSecondary, borderTopColor: colors.border }]}>
                   {VEHICLE_TYPES.map((type) => (
                     <TouchableOpacity
                       key={type.value}
                       style={[
                         addVehicleScreenStyles.dropdownItem,
+                        { backgroundColor: colors.backgroundSecondary, borderBottomColor: colors.border },
                         vehicleType === type.value && addVehicleScreenStyles.selectedDropdownItem
                       ]}
                       onPress={() => handleVehicleTypeSelect(type.value)}
@@ -378,6 +383,7 @@ export default function AddVehicleScreen() {
                     >
                       <Text style={[
                         addVehicleScreenStyles.dropdownItemText,
+                        { color: colors.text },
                         vehicleType === type.value && addVehicleScreenStyles.selectedDropdownItemText
                       ]}>
                         {type.label}
@@ -391,10 +397,12 @@ export default function AddVehicleScreen() {
             <TextInput
               style={[
                 addVehicleScreenStyles.inputField,
+                { backgroundColor: colors.card, borderColor: colors.primary, color: colors.text },
                 errors.vehicleColor && addVehicleScreenStyles.errorInput
               ]}
               placeholder="Vehicle Color:"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.primary}
               value={vehicleColor}
               onChangeText={(text) => {
                 setVehicleColor(text);
@@ -420,10 +428,12 @@ export default function AddVehicleScreen() {
             <TextInput
               style={[
                 addVehicleScreenStyles.inputField,
+                { backgroundColor: colors.card, borderColor: colors.primary, color: colors.text },
                 errors.plateNumber && addVehicleScreenStyles.errorInput
               ]}
               placeholder="Plate Number:"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.primary}
               value={plateNumber}
               onChangeText={(text) => {
                 setPlateNumber(text);
@@ -449,10 +459,12 @@ export default function AddVehicleScreen() {
             <TextInput
               style={[
                 addVehicleScreenStyles.inputField,
+                { backgroundColor: colors.card, borderColor: colors.primary, color: colors.text },
                 errors.vehicleBrand && addVehicleScreenStyles.errorInput
               ]}
               placeholder="Vehicle Brand:"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.primary}
               value={vehicleBrand}
               onChangeText={(text) => {
                 setVehicleBrand(text);
@@ -478,10 +490,12 @@ export default function AddVehicleScreen() {
             <TextInput
               style={[
                 addVehicleScreenStyles.inputField,
+                { backgroundColor: colors.card, borderColor: colors.primary, color: colors.text },
                 errors.vehicleModel && addVehicleScreenStyles.errorInput
               ]}
               placeholder="Vehicle Model:"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.primary}
               value={vehicleModel}
               onChangeText={(text) => {
                 setVehicleModel(text);
@@ -510,18 +524,18 @@ export default function AddVehicleScreen() {
             <View style={addVehicleScreenStyles.buttonContainer}>
               <TouchableOpacity
                 onPress={handleGoBack}
-                style={addVehicleScreenStyles.goBackButton}
+                style={[addVehicleScreenStyles.goBackButton, { backgroundColor: colors.gray200 }]}
               >
-                <Text style={addVehicleScreenStyles.goBackButtonText}>Go Back</Text>
+                <Text style={[addVehicleScreenStyles.goBackButtonText, { color: colors.text }]}>Go Back</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={handleAddVehicle}
-                style={[addVehicleScreenStyles.addButton, isLoading && addVehicleScreenStyles.disabledButton]}
+                style={[addVehicleScreenStyles.addButton, { backgroundColor: colors.primary }, isLoading && addVehicleScreenStyles.disabledButton]}
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#800000" size="small" />
+                  <ActivityIndicator color={colors.textInverse} size="small" />
                 ) : (
                   <Text style={addVehicleScreenStyles.addButtonText}>+ Add</Text>
                 )}

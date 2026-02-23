@@ -24,10 +24,13 @@ import {
   whiteEbikeIconSvg
 } from '../assets/icons/index2';
 import { useScreenDimensions, getAdaptiveFontSize, getAdaptiveSpacing, getAdaptivePadding } from '../../hooks/use-screen-dimensions';
+import { useThemeColors } from '../../contexts/ThemeContext';
 
 export default function HomeScreenFixed() {
   const { user, isAuthenticated } = useAuth();
   const { toggleDrawer } = useDrawer();
+  const colors = useThemeColors();
+  const styles = createStyles(colors);
   const screenDimensions = useScreenDimensions();
 
   // State variables
@@ -114,7 +117,7 @@ export default function HomeScreenFixed() {
           rightComponent={<ProfilePicture size={screenDimensions.isTablet ? 36 : 32} />}
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8A0000" />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { fontSize: getAdaptiveFontSize(screenDimensions, 16) }]}>
             Loading...
           </Text>
@@ -177,7 +180,7 @@ export default function HomeScreenFixed() {
                   />
                 </View>
                 <Text style={[styles.vehicleLabel, { fontSize: getAdaptiveFontSize(screenDimensions, 12) }]}>Brand and Model</Text>
-                <Text style={[styles.vehicleValue, { fontSize: getAdaptiveFontSize(screenDimensions, 14) }]}>{vehicle.brand || 'N/A'} - N/A</Text>
+                <Text style={[styles.vehicleValue, { fontSize: getAdaptiveFontSize(screenDimensions, 14) }]}>{vehicle.brand || 'N/A'} - {vehicle.model || 'N/A'}</Text>
                 <Text style={[styles.vehicleLabel, { fontSize: getAdaptiveFontSize(screenDimensions, 12) }]}>Display Name</Text>
                 <Text style={[styles.vehicleValue, { fontSize: getAdaptiveFontSize(screenDimensions, 14) }]}>{vehicle.display_name || 'N/A'}</Text>
               </TouchableOpacity>
@@ -198,7 +201,7 @@ export default function HomeScreenFixed() {
         {/* Parking Areas Section */}
         <View style={[styles.section, { padding: getAdaptivePadding(screenDimensions, 20) }]}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="location" size={24} color="#8A0000" />
+            <Ionicons name="location" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { fontSize: getAdaptiveFontSize(screenDimensions, 18) }]}>Available Parking</Text>
           </View>
           
@@ -242,10 +245,10 @@ export default function HomeScreenFixed() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -257,14 +260,14 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    color: '#666',
+    color: colors.textSecondary,
   },
   sloganSection: {
     alignItems: 'flex-start',
   },
   parkingText: {
     fontWeight: 'bold',
-    color: '#8A0000',
+    color: colors.primary,
   },
   madeEasyContainer: {
     flexDirection: 'row',
@@ -272,11 +275,11 @@ const styles = StyleSheet.create({
   },
   madeText: {
     fontWeight: 'bold',
-    color: '#000000',
+    color: colors.text,
   },
   easyText: {
     fontWeight: 'bold',
-    color: '#8A0000',
+    color: colors.primary,
   },
   section: {
     marginBottom: 30,
@@ -288,7 +291,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginLeft: 8,
   },
   horizontalScroll: {
@@ -298,8 +301,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   vehicleCard: {
-    backgroundColor: 'white',
-    shadowColor: '#000',
+    backgroundColor: colors.card,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -309,7 +312,7 @@ const styles = StyleSheet.create({
     minHeight: 200,
   },
   vehicleIconContainer: {
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 16,
@@ -317,17 +320,17 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   vehicleLabel: {
-    color: '#8A0000',
+    color: colors.primary,
     marginBottom: 4,
   },
   vehicleValue: {
     fontWeight: 'bold',
-    color: '#000000',
+    color: colors.text,
     marginBottom: 8,
   },
   parkingAreaCard: {
-    backgroundColor: 'white',
-    shadowColor: '#000',
+    backgroundColor: colors.card,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -337,25 +340,25 @@ const styles = StyleSheet.create({
     minHeight: 180,
   },
   parkingLocation: {
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   parkingSpotId: {
     fontWeight: 'bold',
-    color: '#8A0000',
+    color: colors.primary,
     marginBottom: 8,
   },
   parkingLabel: {
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   parkingTime: {
-    color: '#1F2937',
+    color: colors.text,
     flex: 1,
   },
   parkingPrice: {
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 12,
   },
   availableStatus: {
@@ -363,49 +366,49 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
   },
   bookButton: {
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.button,
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 8,
   },
   bookButtonText: {
-    color: 'white',
+    color: colors.buttonText,
     fontWeight: 'bold',
   },
   emptyCard: {
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
     minHeight: 150,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderStyle: 'dashed',
   },
   emptyText: {
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
-    color: '#999',
+    color: colors.textMuted,
   },
   addButton: {
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.button,
     borderRadius: 8,
     alignItems: 'center',
   },
   addButtonText: {
-    color: 'white',
+    color: colors.buttonText,
     fontWeight: 'bold',
   },
   profilePicture: {
-    backgroundColor: '#8A0000',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   profileInitials: {
-    color: 'white',
+    color: colors.textInverse,
     fontWeight: 'bold',
   },
 });

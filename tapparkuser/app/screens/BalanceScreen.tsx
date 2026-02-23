@@ -25,7 +25,12 @@ import {
   maroonDebitIconSvg,
   maroonArrowToTopRightIconSvg,
   maroonArrowToBottomLeftIconSvg,
-  maroonProfitHandIconSvg
+  maroonProfitHandIconSvg,
+  darkTapParkLogoSvg,
+  darkTimeIconSvg,
+  darkArrowToTopRightIconSvg,
+  darkArrowToBottomLeftIconSvg,
+  darkProfitHandIconSvg
 } from '../assets/icons/index2';
 import { ApiService } from '../../services/api';
 import { useScreenDimensions } from '../../hooks/use-screen-dimensions';
@@ -249,10 +254,12 @@ const BalanceScreen: React.FC = () => {
 
   // Get transaction icon based on type
   const getTransactionIcon = (transaction: any) => {
+    const topRightIcon = isDarkMode ? darkArrowToTopRightIconSvg : maroonArrowToTopRightIconSvg;
+    const bottomLeftIcon = isDarkMode ? darkArrowToBottomLeftIconSvg : maroonArrowToBottomLeftIconSvg;
     if (transaction.type === 'parking') {
-      return maroonArrowToTopRightIconSvg; // Parking consumes hours
+      return topRightIcon; // Parking consumes hours
     } else {
-      return transaction.payment_type === 'subscription' ? maroonArrowToBottomLeftIconSvg : maroonArrowToTopRightIconSvg;
+      return transaction.payment_type === 'subscription' ? bottomLeftIcon : topRightIcon;
     }
   };
 
@@ -353,7 +360,7 @@ const BalanceScreen: React.FC = () => {
             {/* TapPark Logo - Top Right */}
             <View style={balanceScreenStyles.topRightLogo}>
               <SvgXml 
-                xml={tapParkLogoSvg}
+                xml={isDarkMode ? darkTapParkLogoSvg : tapParkLogoSvg}
                 width={getResponsiveSize(70)}
                 height={getResponsiveSize(70)}
               />
@@ -380,7 +387,7 @@ const BalanceScreen: React.FC = () => {
             <View style={balanceScreenStyles.balanceSection}>
               <View style={balanceScreenStyles.balanceInfo}>
                 <SvgXml 
-                  xml={maroonTimeIconSvg}
+                  xml={isDarkMode ? darkTimeIconSvg : maroonTimeIconSvg}
                   width={getResponsiveSize(32)}
                   height={getResponsiveSize(32)}
                 />
@@ -401,7 +408,7 @@ const BalanceScreen: React.FC = () => {
           <View style={balanceScreenStyles.transactionsSection}>
             <View style={balanceScreenStyles.transactionsHeader}>
               <SvgXml 
-                xml={maroonProfitHandIconSvg}
+                xml={isDarkMode ? darkProfitHandIconSvg : maroonProfitHandIconSvg}
                 width={getResponsiveSize(20)}
                 height={getResponsiveSize(20)}
               />
@@ -447,7 +454,7 @@ const BalanceScreen: React.FC = () => {
                     )}
                   </View>
                   <SvgXml 
-                    xml={maroonTimeIconSvg}
+                    xml={isDarkMode ? darkTimeIconSvg : maroonTimeIconSvg}
                     width={getResponsiveSize(16)}
                     height={getResponsiveSize(16)}
                   />

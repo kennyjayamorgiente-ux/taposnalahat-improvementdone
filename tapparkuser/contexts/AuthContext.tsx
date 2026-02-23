@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import ApiService from '../services/api';
 import RealtimeService from '../services/realtime';
+import { normalizeUserProfileImageFields } from '../utils/profileImage';
 
 interface User {
   user_id: number;
   email: string;
   first_name: string;
   last_name: string;
+  profile_image?: string;
+  profile_image_url?: string;
   hour_balance: number;
   type_id: number;
   account_type_name: string;
@@ -63,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response = await ApiService.getProfile();
       if (response.success && response.data.user) {
-        setUser(response.data.user);
+        setUser(normalizeUserProfileImageFields(response.data.user) as User);
         setIsAuthenticated(true);
       } else {
         resetRealtimeAndCache();
@@ -107,9 +110,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await ApiService.login(email, password);
 
       if (response.success && response.data && response.data.user) {
-        setUser(response.data.user);
+        const normalizedUser = normalizeUserProfileImageFields(response.data.user) as User;
+        setUser(normalizedUser);
         setIsAuthenticated(true);
-        return { success: true, user: response.data.user };
+        return { success: true, user: normalizedUser };
       }
 
       return { success: false, error: response.message || 'Invalid email or password' };

@@ -12,7 +12,8 @@ import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { SvgXml } from 'react-native-svg';
 import { 
-  tapParkLogoSvg
+  tapParkLogoSvg,
+  darkTapParkLogoSvg
 } from '../assets/icons/index2';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -88,7 +89,7 @@ const TermsAndConditionsScreen: React.FC = () => {
           <View style={styles.profilePictureSection}>
             <View style={styles.profilePictureContainer}>
               <SvgXml 
-                xml={tapParkLogoSvg}
+                xml={isDarkMode ? darkTapParkLogoSvg : tapParkLogoSvg}
                 width={getResponsiveSize(150)}
                 height={getResponsiveSize(150)}
               />
@@ -232,8 +233,6 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.crea
     backgroundColor: colors.profileCard,
     borderTopLeftRadius: getResponsiveSize(20),
     borderTopRightRadius: getResponsiveSize(20),
-    borderWidth: 1,
-    borderColor: colors.primary,
     paddingTop: getResponsivePadding(25),
     paddingBottom: 0,
     paddingHorizontal: getResponsivePadding(20),

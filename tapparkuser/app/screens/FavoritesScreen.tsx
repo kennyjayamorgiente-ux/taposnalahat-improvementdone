@@ -27,11 +27,13 @@ import {
   maroonLocationIconSvg,
   maroonTimeIconSvg,
   maroonTrashIconSvg,
+  darkTrashIconSvg,
   tapParkLogoSvg,
   whiteCarIconSvg,
   whiteMotorIconSvg,
   whiteEbikeIconSvg
 } from '../assets/icons/index2';
+import { normalizeProfileImageUrl } from '../../utils/profileImage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -108,7 +110,7 @@ const FavoritesScreen: React.FC = () => {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     };
 
-    const profileImageUrl = (user as any)?.profile_image || (user as any)?.profile_image_url;
+    const profileImageUrl = normalizeProfileImageUrl((user as any)?.profile_image || (user as any)?.profile_image_url);
 
     // If profile image URL is provided, show the image
     if (profileImageUrl) {
@@ -627,7 +629,7 @@ const FavoritesScreen: React.FC = () => {
                         onPress={() => handleRemoveFavorite(favorite.parking_spot_id)}
                       >
                         <SvgXml 
-                          xml={maroonTrashIconSvg}
+                          xml={isDarkMode ? darkTrashIconSvg : maroonTrashIconSvg}
                           width={20}
                           height={20}
                         />

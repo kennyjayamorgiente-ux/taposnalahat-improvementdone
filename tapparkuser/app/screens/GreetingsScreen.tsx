@@ -11,8 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { SvgXml } from 'react-native-svg';
 import { ThemedText } from '@/components/themed-text';
-import { greetingsStyles } from '../styles/greetingsStyles';
+import { getGreetingsStyles } from '../styles/greetingsStyles';
 import SharedHeader from '../../components/SharedHeader';
+import { useThemeColors } from '../../contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -32,30 +33,30 @@ const getResponsiveSize = (baseSize: number) => {
   return baseSize;
 };
 
-// Circle Glow SVG - Using the actual Circle Glow.svg file
-const circleGlowSvg = `<svg width="280" height="288" viewBox="0 0 280 288" fill="none" xmlns="http://www.w3.org/2000/svg">
+export default function GreetingsScreen() {
+  const router = useRouter();
+  const colors = useThemeColors();
+  const styles = getGreetingsStyles(colors);
+  const pulseAnim = new Animated.Value(1);
+  const circleGlowSvg = `<svg width="280" height="288" viewBox="0 0 280 288" fill="none" xmlns="http://www.w3.org/2000/svg">
 <ellipse cx="139.916" cy="143.704" rx="141.161" ry="137.3" transform="rotate(88.9284 139.916 143.704)" fill="url(#paint0_radial_1317_2440)"/>
 <ellipse cx="139.487" cy="143.712" rx="105.12" ry="102.546" transform="rotate(88.9284 139.487 143.712)" fill="url(#paint1_radial_1317_2440)"/>
 <ellipse cx="139.916" cy="143.704" rx="70.7952" ry="68.6498" transform="rotate(88.9284 139.916 143.704)" fill="url(#paint2_radial_1317_2440)"/>
 <defs>
 <radialGradient id="paint0_radial_1317_2440" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(139.916 143.704) rotate(90) scale(154.407 158.75)">
-<stop offset="0.412604" stop-color="#800000"/>
-<stop offset="1" stop-color="#EFEEF6" stop-opacity="0"/>
+<stop offset="0.412604" stop-color="${colors.primary}"/>
+<stop offset="1" stop-color="${colors.backgroundSecondary}" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint1_radial_1317_2440" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(139.487 143.712) rotate(90) scale(115.323 118.218)">
-<stop stop-color="#800000"/>
-<stop offset="1" stop-color="white"/>
+<stop stop-color="${colors.primary}"/>
+<stop offset="1" stop-color="${colors.card}"/>
 </radialGradient>
 <radialGradient id="paint2_radial_1317_2440" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(139.916 143.704) rotate(90) scale(77.2037 79.6163)">
-<stop stop-color="#800000"/>
-<stop offset="1" stop-color="white"/>
+<stop stop-color="${colors.primary}"/>
+<stop offset="1" stop-color="${colors.card}"/>
 </radialGradient>
 </defs>
 </svg>`;
-
-export default function GreetingsScreen() {
-  const router = useRouter();
-  const pulseAnim = new Animated.Value(1);
 
   React.useEffect(() => {
     // Create pulsing animation for the circles
@@ -149,5 +150,3 @@ export default function GreetingsScreen() {
   );
 }
 
-
-const styles = greetingsStyles;

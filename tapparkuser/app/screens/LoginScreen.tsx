@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { carIconSvg } from '../assets/icons/index2';
 import { loginStyles } from '../styles/loginStyles';
 import { useAuth } from '../../contexts/AuthContext';
+import { useThemeColors } from '../../contexts/ThemeContext';
 import ApiService from '../../services/api';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -67,6 +68,7 @@ const circleGlowSvg = `<svg width="280" height="288" viewBox="0 0 280 288" fill=
 export default function LoginScreen() {
   const router = useRouter();
   const { login, user, isAuthenticated } = useAuth();
+  const colors = useThemeColors();
   const pulseAnim = new Animated.Value(1);
   
   // Local loading state for login button
@@ -195,9 +197,9 @@ export default function LoginScreen() {
 
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['bottom']}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             style={{ flex: 1 }}
@@ -205,7 +207,7 @@ export default function LoginScreen() {
           >
             <ScrollView 
               ref={scrollViewRef}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.background }]}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               bounces={false}
@@ -240,10 +242,10 @@ export default function LoginScreen() {
           <View style={styles.middleSection}>
             <View style={styles.parkWithEaseContainer}>
               <SvgXml xml={carIconSvg} width={getResponsiveSize(16)} height={getResponsiveSize(16)} />
-              <Text style={styles.parkWithEaseText}>Park with ease!</Text>
+              <Text style={[styles.parkWithEaseText, { color: colors.textSecondary }]}>Park with ease!</Text>
             </View>
             
-            <Text style={styles.welcomeText}>
+            <Text style={[styles.welcomeText, { color: colors.text }]}>
               HEY THERE! WELCOME BACK! 😉
             </Text>
           </View>
@@ -252,9 +254,10 @@ export default function LoginScreen() {
           <View style={styles.inputSection}>
             <TextInput
               ref={emailInputRef}
-              style={styles.inputField}
+              style={[styles.inputField, { backgroundColor: colors.card, borderColor: colors.primary, color: colors.text }]}
               placeholder="Email"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.primary}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -271,12 +274,13 @@ export default function LoginScreen() {
             />
             {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
             
-            <View style={styles.passwordContainer}>
+            <View style={[styles.passwordContainer, { backgroundColor: colors.card, borderColor: colors.primary }]}>
               <TextInput
                 ref={passwordInputRef}
-                style={styles.passwordFieldWithIcon}
+                style={[styles.passwordFieldWithIcon, { color: colors.text }]}
                 placeholder="Password"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textMuted}
+                selectionColor={colors.primary}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(text) => {
@@ -298,7 +302,7 @@ export default function LoginScreen() {
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={22}
-                  color="#6B7280"
+                  color={colors.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -310,11 +314,11 @@ export default function LoginScreen() {
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 onPress={handleLogin}
-                style={[styles.loginButton, isLoggingIn && { opacity: 0.7 }]}
+                style={[styles.loginButton, { backgroundColor: colors.primary }, isLoggingIn && { opacity: 0.7 }]}
                 disabled={isLoggingIn}
               >
                 {isLoggingIn ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
+                  <ActivityIndicator color={colors.textInverse} size="small" />
                 ) : (
                   <Text style={styles.loginButtonText}>Login</Text>
                 )}
@@ -323,9 +327,9 @@ export default function LoginScreen() {
             
             {/* Register Link */}
             <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Do not have an account?</Text>
+              <Text style={[styles.registerText, { color: colors.textSecondary }]}>Do not have an account?</Text>
               <TouchableOpacity onPress={() => router.push('/screens/SignupScreen')}>
-                <Text style={styles.registerLink}>Register</Text>
+                <Text style={[styles.registerLink, { color: colors.primary }]}>Register</Text>
               </TouchableOpacity>
             </View>
           </View>

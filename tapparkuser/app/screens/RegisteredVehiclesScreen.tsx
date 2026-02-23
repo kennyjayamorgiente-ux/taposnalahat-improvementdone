@@ -24,7 +24,12 @@ import {
   maroonMotorIconSvg,
   maroonEbikeIconSvg,
   maroonBinIconSvg,
-  maroonNewCarIconSvg
+  maroonNewCarIconSvg,
+  darkCarIconSvg,
+  darkMotorIconSvg,
+  darkEbikeIconSvg,
+  darkBinIconSvg,
+  darkNewCarIconSvg
 } from '../assets/icons/index2';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
@@ -344,7 +349,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                       </View>
                       <View style={registeredVehiclesScreenStyles.vehicleRow}>
                         <Text style={registeredVehiclesScreenStyles.vehicleLabel}>Model:</Text>
-                        <Text style={registeredVehiclesScreenStyles.vehicleValue}>N/A</Text>
+                        <Text style={registeredVehiclesScreenStyles.vehicleValue}>{vehicle.model || 'N/A'}</Text>
                       </View>
                       <View style={registeredVehiclesScreenStyles.vehicleRow}>
                         <Text style={registeredVehiclesScreenStyles.vehicleLabel}>Color:</Text>
@@ -353,7 +358,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                     </View>
                     <View style={registeredVehiclesScreenStyles.vehicleRowRight}>
                       <SvgXml
-                        xml={maroonCarIconSvg}
+                        xml={isDarkMode ? darkCarIconSvg : maroonCarIconSvg}
                         width={20}
                         height={20}
                       />
@@ -363,7 +368,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                       onPress={() => handleDeleteVehicle(vehicle, 'Car')}
                     >
                       <SvgXml
-                        xml={maroonBinIconSvg}
+                        xml={isDarkMode ? darkBinIconSvg : maroonBinIconSvg}
                         width={20}
                         height={20}
                       />
@@ -434,7 +439,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                       </View>
                       <View style={registeredVehiclesScreenStyles.vehicleRow}>
                         <Text style={registeredVehiclesScreenStyles.vehicleLabel}>Model:</Text>
-                        <Text style={registeredVehiclesScreenStyles.vehicleValue}>N/A</Text>
+                        <Text style={registeredVehiclesScreenStyles.vehicleValue}>{vehicle.model || 'N/A'}</Text>
                       </View>
                       <View style={registeredVehiclesScreenStyles.vehicleRow}>
                         <Text style={registeredVehiclesScreenStyles.vehicleLabel}>Color:</Text>
@@ -443,7 +448,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                     </View>
                     <View style={registeredVehiclesScreenStyles.vehicleRowRight}>
                       <SvgXml
-                        xml={maroonMotorIconSvg}
+                        xml={isDarkMode ? darkMotorIconSvg : maroonMotorIconSvg}
                         width={20}
                         height={20}
                       />
@@ -453,7 +458,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                       onPress={() => handleDeleteVehicle(vehicle, 'Motorcycle')}
                     >
                       <SvgXml
-                        xml={maroonBinIconSvg}
+                        xml={isDarkMode ? darkBinIconSvg : maroonBinIconSvg}
                         width={20}
                         height={20}
                       />
@@ -524,7 +529,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                       </View>
                       <View style={registeredVehiclesScreenStyles.vehicleRow}>
                         <Text style={registeredVehiclesScreenStyles.vehicleLabel}>Model:</Text>
-                        <Text style={registeredVehiclesScreenStyles.vehicleValue}>N/A</Text>
+                        <Text style={registeredVehiclesScreenStyles.vehicleValue}>{vehicle.model || 'N/A'}</Text>
                       </View>
                       <View style={registeredVehiclesScreenStyles.vehicleRow}>
                         <Text style={registeredVehiclesScreenStyles.vehicleLabel}>Color:</Text>
@@ -533,7 +538,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                     </View>
                     <View style={registeredVehiclesScreenStyles.vehicleRowRight}>
                       <SvgXml
-                        xml={maroonEbikeIconSvg}
+                        xml={isDarkMode ? darkEbikeIconSvg : maroonEbikeIconSvg}
                         width={20}
                         height={20}
                       />
@@ -543,7 +548,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
                       onPress={() => handleDeleteVehicle(vehicle, 'E-bike')}
                     >
                       <SvgXml
-                        xml={maroonBinIconSvg}
+                        xml={isDarkMode ? darkBinIconSvg : maroonBinIconSvg}
                         width={20}
                         height={20}
                       />
@@ -577,7 +582,7 @@ const RegisteredVehiclesScreen: React.FC = () => {
             {/* Add Vehicle Button */}
             <TouchableOpacity style={registeredVehiclesScreenStyles.addVehicleButton} onPress={handleAddVehicle}>
               <SvgXml
-                xml={maroonNewCarIconSvg}
+                xml={isDarkMode ? darkNewCarIconSvg : maroonNewCarIconSvg}
                 width={20}
                 height={20}
               />

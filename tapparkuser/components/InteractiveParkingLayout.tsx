@@ -6,10 +6,10 @@ import {
   Modal,
   Dimensions,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { activeParkingScreenStyles } from '../app/styles/activeParkingScreenStyles';
+import { useThemeColors } from '../contexts/ThemeContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -34,6 +34,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
   bookingData,
   onSpotPress,
 }) => {
+  const colors = useThemeColors();
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
   const [showSpotModal, setShowSpotModal] = useState(false);
   const [parkingSpots, setParkingSpots] = useState<ParkingSpot[]>([]);
@@ -122,7 +123,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
   const getSpotColor = (spot: ParkingSpot) => {
     switch (spot.status) {
       case 'current':
-        return '#8A0000'; // Red for current user's spot
+        return colors.primary;
       case 'occupied':
         return '#FF3B30'; // Red for occupied
       case 'reserved':
@@ -130,18 +131,18 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
       case 'available':
         return '#34C759'; // Green for available
       default:
-        return '#8E8E93'; // Gray for unknown
+        return colors.gray500;
     }
   };
 
   const getSpotStrokeColor = (spot: ParkingSpot) => {
     switch (spot.type) {
       case 'handicap':
-        return '#007AFF'; // Blue for handicap
+        return colors.info;
       case 'electric':
         return '#32D74B'; // Green for electric
       default:
-        return '#000000'; // Black for regular
+        return colors.text;
     }
   };
 
@@ -225,7 +226,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
     // Create legend
     const legendY = 350;
     const legendItems = [
-      { color: '#8A0000', label: 'Your Spot', x: 20 },
+      { color: colors.primary, label: 'Your Spot', x: 20 },
       { color: '#34C759', label: 'Available', x: 100 },
       { color: '#FF3B30', label: 'Occupied', x: 180 },
       { color: '#FF9500', label: 'Reserved', x: 260 },
@@ -245,7 +246,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
         x="${item.x + 16}"
         y="${legendY + 9}"
         font-size="10"
-        fill="#333"
+        fill="${colors.text}"
       >
         ${item.label}
       </text>
@@ -259,8 +260,8 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
           y="30"
           width="290"
           height="300"
-          fill="#F5F5F5"
-          stroke="#E0E0E0"
+          fill="${colors.backgroundSecondary}"
+          stroke="${colors.border}"
           stroke-width="2"
           rx="8"
           ry="8"
@@ -275,8 +276,8 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
           y="${legendY - 10}"
           width="330"
           height="40"
-          fill="white"
-          stroke="#E0E0E0"
+          fill="${colors.card}"
+          stroke="${colors.border}"
           stroke-width="1"
           rx="4"
           ry="4"
@@ -290,7 +291,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
           text-anchor="middle"
           font-size="16"
           font-weight="bold"
-          fill="#8A0000"
+          fill="${colors.primary}"
         >
           ${bookingData?.parkingArea?.name || 'Parking Area'}
         </text>
@@ -363,7 +364,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
                 </Text>
                 <View style={[
                   activeParkingScreenStyles.statusIndicator,
-                  { backgroundColor: '#8A0000' }
+                  { backgroundColor: colors.primary }
                 ]} />
               </View>
               
@@ -389,7 +390,7 @@ const InteractiveParkingLayout: React.FC<InteractiveParkingLayoutProps> = ({
             <Text style={activeParkingScreenStyles.legendTitle}>Legend</Text>
             <View style={activeParkingScreenStyles.legendItems}>
               <View style={activeParkingScreenStyles.legendItem}>
-                <View style={[activeParkingScreenStyles.legendColor, { backgroundColor: '#8A0000' }]} />
+                <View style={[activeParkingScreenStyles.legendColor, { backgroundColor: colors.primary }]} />
                 <Text style={activeParkingScreenStyles.legendText}>Your Spot</Text>
               </View>
               <View style={activeParkingScreenStyles.legendItem}>

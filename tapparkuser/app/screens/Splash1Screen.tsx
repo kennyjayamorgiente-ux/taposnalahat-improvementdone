@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { SvgXml } from 'react-native-svg';
 import { ThemedText } from '@/components/themed-text';
+import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -118,13 +119,15 @@ const tapParkLogoSvg = `<svg width="113" height="155" viewBox="0 0 113 155" fill
 
 export default function Splash1Screen() {
   const router = useRouter();
-  const fadeAnim = new Animated.Value(0);
-  const scaleAnim = new Animated.Value(0.5);
-  const rotateAnim = new Animated.Value(0);
-  const logoMoveAnim = new Animated.Value(0);
-  const logoScaleAnim = new Animated.Value(1);
-  const textFadeAnim = new Animated.Value(0);
-  const textSlideAnim = new Animated.Value(30);
+  const colors = useThemeColors();
+  const { isDarkMode } = useTheme();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.5)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const logoMoveAnim = useRef(new Animated.Value(0)).current;
+  const logoScaleAnim = useRef(new Animated.Value(1)).current;
+  const textFadeAnim = useRef(new Animated.Value(0)).current;
+  const textSlideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     // Phase 1: Logo appears with rotation (0-1.5s)
@@ -193,9 +196,12 @@ export default function Splash1Screen() {
     inputRange: [0, 1],
     outputRange: [0, -getResponsiveSize(10)], // Move logo to the left (responsive)
   });
+  const splashLogoXml = isDarkMode
+    ? tapParkLogoSvg.replace(/#8A0000/gi, '#D80000').replace(/#800000/gi, '#D80000')
+    : tapParkLogoSvg;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           {/* Logo and Text Container */}
@@ -215,7 +221,7 @@ export default function Splash1Screen() {
               ]}
             >
               <SvgXml 
-                xml={tapParkLogoSvg} 
+                xml={splashLogoXml} 
                 width={getResponsiveSize(140)} 
                 height={getResponsiveSize(190)} 
               />
@@ -231,7 +237,7 @@ export default function Splash1Screen() {
                 },
               ]}
             >
-              <ThemedText type="display" color="primary" style={styles.appName}>
+              <ThemedText type="display" color="primary" style={[styles.appName, { color: colors.primary }]}>
                 TapPark
               </ThemedText>
             </Animated.View>

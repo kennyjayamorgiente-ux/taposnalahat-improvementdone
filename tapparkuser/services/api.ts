@@ -1,6 +1,7 @@
 import { getApiUrl } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
+import { normalizeProfileImageUrl, normalizeUserProfileImageFields } from '../utils/profileImage';
 
 const MULTIPART_UPLOAD_TYPE = (FileSystem as any)?.FileSystemUploadType?.MULTIPART ?? 1;
 
@@ -623,6 +624,10 @@ export class ApiService {
       await this.storeToken(response.data.token);
     }
 
+    if (response?.success && response?.data?.user) {
+      response.data.user = normalizeUserProfileImageFields(response.data.user) as any;
+    }
+
     return response;
   }
 
@@ -674,7 +679,7 @@ export class ApiService {
   }
 
   static async getProfile() {
-    return this.request<{
+    const response = await this.request<{
       success: boolean;
       data: {
         user: {
@@ -693,6 +698,12 @@ export class ApiService {
         };
       };
     }>('/auth/profile');
+
+    if (response?.success && response?.data?.user) {
+      response.data.user = normalizeUserProfileImageFields(response.data.user) as any;
+    }
+
+    return response;
   }
 
   static async acceptTerms() {
@@ -766,6 +777,10 @@ export class ApiService {
           responseBody: uploadResult.body?.slice(0, 200)
         });
         throw new Error(errorMessage);
+      }
+
+      if (responseData?.data?.profile_image) {
+        responseData.data.profile_image = normalizeProfileImageUrl(responseData.data.profile_image);
       }
 
       return responseData;

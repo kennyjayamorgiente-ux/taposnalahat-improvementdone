@@ -16,7 +16,8 @@ import { SvgXml } from 'react-native-svg';
 import SharedHeader from '../../components/SharedHeader';
 import {
   maroonUsersEditIconSvg,
-  maroonLockIconSvg
+  maroonLockIconSvg,
+  darkLockIconSvg
 } from '../assets/icons/index2';
 import { useAuth } from '../../contexts/AuthContext';
 import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
@@ -272,7 +273,7 @@ const ChangePasswordScreen: React.FC = () => {
               <ActivityIndicator size="small" color="white" />
             ) : (
               <SvgXml
-                xml={maroonLockIconSvg}
+                xml={isDarkMode ? darkLockIconSvg : maroonLockIconSvg}
                 width={getResponsiveSize(20)}
                 height={getResponsiveSize(20)}
               />
@@ -315,8 +316,6 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.crea
     backgroundColor: colors.profileCard,
     borderTopLeftRadius: getResponsiveSize(20),
     borderTopRightRadius: getResponsiveSize(20),
-    borderWidth: 1,
-    borderColor: colors.primary,
     paddingTop: getResponsivePadding(25),
     paddingBottom: getResponsivePadding(35),
     paddingHorizontal: getResponsivePadding(20),

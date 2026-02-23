@@ -263,7 +263,7 @@ interface CustomLoadingSpinnerProps {
 }
 
 const CustomLoadingSpinner: React.FC<CustomLoadingSpinnerProps> = ({ colors }) => {
-  const themeColors = colors || { primary: '#8A0000', gray300: '#E5E7EB' };
+  const themeColors = colors || { primary: '#800000', gray300: '#D0D0D0' };
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -328,7 +328,7 @@ const CustomLoadingSpinner: React.FC<CustomLoadingSpinnerProps> = ({ colors }) =
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={themeColors.gray300 || '#E5E7EB'}
+            stroke={themeColors.gray300 || '#D0D0D0'}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -337,7 +337,7 @@ const CustomLoadingSpinner: React.FC<CustomLoadingSpinnerProps> = ({ colors }) =
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={themeColors.primary || '#8A0000'}
+            stroke={themeColors.primary || '#800000'}
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={[circumference * 0.7, circumference]}

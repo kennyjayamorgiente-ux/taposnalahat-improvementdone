@@ -20,10 +20,14 @@ import {
   maroonFavIconSvg,
   maroonLocationIconSvg,
   maroonHomeIconSvg,
-  blackLightIconSvg,
-  blackDarkIconSvg,
+  darkProfileIconSvg,
+  darkFavIconSvg,
+  darkLocationIconSvg,
+  darkHomeIconSvg,
   maroonArrowIconSvg,
+  darkArrowIconSvg,
   profitIconSvg,
+  darkProfitIconSvg,
   whiteFavIconSvg,
   whiteProfileIconSvg,
   whiteLocationIconSvg,
@@ -87,39 +91,39 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ isOpen, onClose }) => {
     { 
       id: 'Home', 
       activeIcon: whiteHomeIconSvg, 
-      inactiveIcon: maroonHomeIconSvg, 
+      inactiveIcon: isDarkMode ? darkHomeIconSvg : maroonHomeIconSvg, 
       text: 'Home', 
       route: '/screens/HomeScreen' 
     },
     { 
       id: 'Profile', 
       activeIcon: whiteProfileIconSvg, 
-      inactiveIcon: maroonProfileIconSvg, 
+      inactiveIcon: isDarkMode ? darkProfileIconSvg : maroonProfileIconSvg, 
       text: 'Profile', 
       route: '/ProfileScreen' 
     },
     { 
       id: 'Favorites', 
       activeIcon: whiteFavIconSvg, 
-      inactiveIcon: maroonFavIconSvg, 
+      inactiveIcon: isDarkMode ? darkFavIconSvg : maroonFavIconSvg, 
       text: 'Favorites', 
       route: '/screens/FavoritesScreen' 
     },
     { 
       id: 'Active Parking', 
       activeIcon: whiteLocationIconSvg, 
-      inactiveIcon: maroonLocationIconSvg, 
+      inactiveIcon: isDarkMode ? darkLocationIconSvg : maroonLocationIconSvg, 
       text: 'Active Parking', 
       route: '/screens/ActiveParkingScreen' 
     },
     { 
       id: 'History', 
       activeIcon: whiteProfitIconSvg, 
-      inactiveIcon: profitIconSvg, 
+      inactiveIcon: isDarkMode ? darkProfitIconSvg : profitIconSvg, 
       text: 'History', 
       route: '/screens/HistoryScreen' 
     },
-  ], []);
+  ], [isDarkMode]);
 
   useEffect(() => {
     if (isOpen) {
@@ -291,13 +295,13 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ isOpen, onClose }) => {
                           <Ionicons 
                             name="moon" 
                             size={getResponsiveSize(16)} 
-                            color="#FFFFFF" 
+                            color={colors.textInverse} 
                           />
                         ) : (
-                          <SvgXml 
-                            xml={blackLightIconSvg} 
-                            width={getResponsiveSize(16)} 
-                            height={getResponsiveSize(16)} 
+                          <Ionicons 
+                            name="sunny" 
+                            size={getResponsiveSize(16)} 
+                            color={colors.primary}
                           />
                         )}
                       </View>
@@ -308,7 +312,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ isOpen, onClose }) => {
                 {/* Sign Out Button */}
                 <TouchableOpacity style={dynamicStyles.signOutButton} onPress={handleSignOut}>
                   <SvgXml 
-                    xml={maroonArrowIconSvg}
+                    xml={isDarkMode ? darkArrowIconSvg : maroonArrowIconSvg}
                     width={getResponsiveSize(24)}
                     height={getResponsiveSize(24)} 
                   />
@@ -413,7 +417,7 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.crea
   themeToggleTrack: {
     width: 60,
     height: 30,
-    backgroundColor: colors.warning, // Gold/yellow for light mode
+    backgroundColor: colors.primaryLight,
     borderRadius: 15,
     justifyContent: 'center',
     paddingHorizontal: 2,
@@ -424,7 +428,7 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.crea
   themeToggleThumb: {
     width: 26,
     height: 26,
-    backgroundColor: colors.textInverse,
+    backgroundColor: colors.card,
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
@@ -432,6 +436,7 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>) => StyleSheet.crea
   },
   themeToggleThumbDark: {
     alignSelf: 'flex-end',
+    backgroundColor: colors.primary,
   },
   signOutButton: {
     flexDirection: 'row',

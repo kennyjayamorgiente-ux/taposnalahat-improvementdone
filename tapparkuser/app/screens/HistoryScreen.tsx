@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -10,14 +10,13 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
-  Image
+  TextInput
 } from 'react-native';
-import { Image as ExpoImage } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { Calendar } from 'react-native-calendars';
 import SharedHeader from '../../components/SharedHeader';
-import { useAuth } from '../../contexts/AuthContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
 import { SvgXml } from 'react-native-svg';
@@ -43,7 +42,6 @@ import {
   getAdaptiveMargin 
 } from '../../hooks/use-screen-dimensions';
 import { createHistoryScreenStyles } from '../styles/historyScreenStyles';
-import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 // Now using dynamic orientation-aware responsive system
 
@@ -80,7 +78,6 @@ const formatChargedHours = (decimalHours: number): string => {
 
 const HistoryScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const colors = useThemeColors();
   const { isDarkMode } = useTheme();
@@ -102,45 +99,15 @@ const HistoryScreen: React.FC = () => {
   const [showVehicleMismatchModal, setShowVehicleMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState<any>(null);
   const [isBooking, setIsBooking] = useState(false);
-
-  // Profile picture component
-  const ProfilePicture = ({ size = 100 }: { size?: number }) => {
-    const getInitials = () => {
-      if (!user) return '?';
-      const firstName = user.first_name || '';
-      const lastName = user.last_name || '';
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    };
-
-    const profileImageUrl = getNormalizedProfileImageFromUser(user as any);
-
-    // If profile image URL is provided, show the image
-    if (profileImageUrl) {
-      return (
-        <View style={[styles.profilePicture, { width: size, height: size, borderRadius: size / 2 }]}>
-          <ExpoImage
-            source={{ uri: profileImageUrl }}
-            style={{ width: size - 4, height: size - 4, borderRadius: (size - 4) / 2 }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={200}
-            onError={({ error }) => {
-              console.warn('⚠️ Failed to load profile image (HistoryScreen):', profileImageUrl, error);
-            }}
-          />
-        </View>
-      );
-    }
-
-    // Fallback to initials
-    return (
-      <View style={[styles.profilePicture, { width: size, height: size, borderRadius: size / 2 }]}>
-        <Text style={[styles.profileInitials, { fontSize: size * 0.3 }]}>
-          {getInitials()}
-        </Text>
-      </View>
-    );
-  };
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom'>('all');
+  const [isFilterDropdownVisible, setIsFilterDropdownVisible] = useState(false);
+  const [isCustomFilterModalVisible, setIsCustomFilterModalVisible] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const mainScrollRef = useRef<ScrollView>(null);
 
   // Load parking history from API
   const loadHistory = async () => {
@@ -168,15 +135,6 @@ const HistoryScreen: React.FC = () => {
       loadHistory();
     }, [])
   );
-
-  const handleEditProfile = () => {
-    // Handle edit profile
-  };
-
-  const handleViewDetails = (historyId: string) => {
-    // Handle view details
-    console.log('View details for:', historyId);
-  };
 
   const handleBookAgain = async (historyId: string) => {
     console.log('🎯 handleBookAgain called with historyId:', historyId);
@@ -660,6 +618,182 @@ const HistoryScreen: React.FC = () => {
     });
   };
 
+  const parseRecordDate = (spot: any): Date | null => {
+    const sourceDate = spot?.time_stamp || spot?.start_time || spot?.created_at;
+    if (!sourceDate) return null;
+    const parsed = new Date(sourceDate);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const parseInputDate = (value: string): Date | null => {
+    if (!value?.trim()) return null;
+    const parsed = new Date(`${value}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const filteredHistoryData = useMemo(() => {
+    const now = new Date();
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    const customStart = parseInputDate(customStartDate);
+    const customEnd = parseInputDate(customEndDate);
+    const customEndInclusive = customEnd ? new Date(customEnd.getTime() + (24 * 60 * 60 * 1000) - 1) : null;
+
+    return historyData.filter((spot) => {
+      const fieldsToSearch = [
+        `RES-${spot.reservation_id ?? ''}`,
+        spot.location_name ?? '',
+        spot.vehicle_type ?? '',
+        spot.brand ?? '',
+        spot.plate_number ?? '',
+        spot.spot_number ?? '',
+        spot.spot_type ?? '',
+        spot.booking_status ?? '',
+      ].join(' ').toLowerCase();
+
+      const matchesSearch = !lowerQuery || fieldsToSearch.includes(lowerQuery);
+      if (!matchesSearch) return false;
+
+      if (dateFilter === 'all') return true;
+
+      const recordDate = parseRecordDate(spot);
+      if (!recordDate) return false;
+
+      if (dateFilter === '7days') {
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        return recordDate >= sevenDaysAgo && recordDate <= now;
+      }
+
+      if (dateFilter === 'month') {
+        return (
+          recordDate.getMonth() === now.getMonth() &&
+          recordDate.getFullYear() === now.getFullYear()
+        );
+      }
+
+      if (dateFilter === 'year') {
+        return recordDate.getFullYear() === now.getFullYear();
+      }
+
+      if (dateFilter === 'lastyear') {
+        return recordDate.getFullYear() === (now.getFullYear() - 1);
+      }
+
+      if (dateFilter === 'custom') {
+        if (!customStart || !customEndInclusive) return true;
+        return recordDate >= customStart && recordDate <= customEndInclusive;
+      }
+
+      return true;
+    });
+  }, [historyData, searchQuery, dateFilter, customStartDate, customEndDate]);
+
+  const applyCustomDateFilter = () => {
+    const start = parseInputDate(customStartDate);
+    const end = parseInputDate(customEndDate);
+
+    if (!start || !end) {
+      Alert.alert('Invalid date', 'Please enter both dates in YYYY-MM-DD format.');
+      return;
+    }
+
+    if (start > end) {
+      Alert.alert('Invalid range', 'Start date must be before or equal to end date.');
+      return;
+    }
+
+    setDateFilter('custom');
+    setIsCustomFilterModalVisible(false);
+  };
+
+  const clearCustomDateFilter = () => {
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setDateFilter('all');
+    setIsCustomFilterModalVisible(false);
+  };
+
+  const getDateFilterLabel = () => {
+    switch (dateFilter) {
+      case '7days':
+        return 'Last 7 Days';
+      case 'month':
+        return 'This Month';
+      case 'year':
+        return 'This Year';
+      case 'lastyear':
+        return 'Last Year';
+      case 'custom':
+        if (customStartDate && customEndDate) {
+          return `${customStartDate} to ${customEndDate}`;
+        }
+        return 'Custom Range';
+      default:
+        return 'All Time';
+    }
+  };
+
+  const handleDateFilterSelect = (filter: 'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom') => {
+    if (filter === 'custom') {
+      setIsFilterDropdownVisible(false);
+      setIsCustomFilterModalVisible(true);
+      return;
+    }
+
+    setDateFilter(filter);
+    setIsFilterDropdownVisible(false);
+  };
+
+  const handleCustomCalendarDayPress = (day: { dateString: string }) => {
+    const selectedDate = day.dateString;
+
+    if (!customStartDate || (customStartDate && customEndDate)) {
+      setCustomStartDate(selectedDate);
+      setCustomEndDate('');
+      return;
+    }
+
+    if (selectedDate < customStartDate) {
+      setCustomStartDate(selectedDate);
+      return;
+    }
+
+    setCustomEndDate(selectedDate);
+  };
+
+  const getMarkedDates = () => {
+    const marked: Record<string, any> = {};
+
+    if (!customStartDate) return marked;
+
+    if (!customEndDate) {
+      marked[customStartDate] = {
+        startingDay: true,
+        endingDay: true,
+        color: colors.primary,
+        textColor: '#FFFFFF',
+      };
+      return marked;
+    }
+
+    let cursor = new Date(`${customStartDate}T00:00:00`);
+    const end = new Date(`${customEndDate}T00:00:00`);
+
+    while (cursor <= end) {
+      const key = cursor.toISOString().split('T')[0];
+      const isStart = key === customStartDate;
+      const isEnd = key === customEndDate;
+      marked[key] = {
+        startingDay: isStart,
+        endingDay: isEnd,
+        color: colors.primary,
+        textColor: '#FFFFFF',
+      };
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return marked;
+  };
+
   // Get vehicle icon based on type
   const getVehicleIcon = (vehicleType: string) => {
     const type = vehicleType.toLowerCase();
@@ -710,6 +844,34 @@ const HistoryScreen: React.FC = () => {
   };
 
   const styles = createHistoryScreenStyles(screenDimensions, colors);
+  const localStyles = StyleSheet.create({
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: getAdaptivePadding(screenDimensions, 14),
+      paddingTop: getAdaptivePadding(screenDimensions, 10),
+      paddingBottom: getAdaptivePadding(screenDimensions, 10),
+    },
+    contentCard: {
+      flex: 1,
+      backgroundColor: colors.profileCard,
+      borderRadius: getAdaptiveSize(screenDimensions, 14),
+      paddingHorizontal: getAdaptivePadding(screenDimensions, 12),
+      paddingTop: getAdaptivePadding(screenDimensions, 12),
+    },
+    scrollTopButton: {
+      position: 'absolute',
+      right: getAdaptivePadding(screenDimensions, 24),
+      bottom: getAdaptivePadding(screenDimensions, 28),
+      width: getAdaptiveSize(screenDimensions, 48),
+      height: getAdaptiveSize(screenDimensions, 48),
+      borderRadius: getAdaptiveSize(screenDimensions, 24),
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      elevation: 8,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -718,118 +880,174 @@ const HistoryScreen: React.FC = () => {
         showBackButton={false}
       />
       
-      <View style={styles.scrollContainer}>
-
-        {/* Profile Content Card */}
-        <View style={styles.profileCard}>
-          {/* Profile Picture Section */}
-          <View style={styles.fixedProfileSection}>
-            <View style={styles.profilePictureContainer}>
-              <ProfilePicture size={screenDimensions.isTablet ? 170 : 150} />
-            </View>
-            
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>PARKING HISTORY</Text>
-              <Text style={styles.userEmail}>YOUR PAST PARKING SESSIONS</Text>
-            </View>
-          </View>
-
-          <ScrollView style={styles.profileCardScroll} showsVerticalScrollIndicator={false}>
+      <View style={localStyles.contentContainer}>
+        <View style={localStyles.contentCard}>
+          <ScrollView
+            ref={mainScrollRef}
+            style={styles.profileCardScroll}
+            showsVerticalScrollIndicator={false}
+            onScroll={(event) => {
+              const offsetY = event.nativeEvent.contentOffset.y;
+              setShowScrollTopButton(offsetY > 200);
+            }}
+            scrollEventThrottle={16}
+          >
             {/* History Spots */}
             <View style={styles.spotsContainer}>
               <Text style={styles.spotsTitle}>Parking History</Text>
+              <View style={styles.controlsContainer}>
+                <View style={styles.searchContainer}>
+                  <Ionicons name="search" size={16} color={colors.textSecondary} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search reservation, location, vehicle, plate..."
+                    placeholderTextColor={colors.textSecondary}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </View>
+
+                <View style={styles.viewToggleContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.viewToggleButton,
+                      viewMode === 'list' && styles.viewToggleButtonActive
+                    ]}
+                    onPress={() => setViewMode('list')}
+                  >
+                    <Ionicons
+                      name="list"
+                      size={16}
+                      color={viewMode === 'list' ? '#FFFFFF' : colors.primary}
+                    />
+                    <Text style={[
+                      styles.viewToggleText,
+                      viewMode === 'list' && styles.viewToggleTextActive
+                    ]}>List</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.viewToggleButton,
+                      viewMode === 'grid' && styles.viewToggleButtonActive
+                    ]}
+                    onPress={() => setViewMode('grid')}
+                  >
+                    <Ionicons
+                      name="grid"
+                      size={16}
+                      color={viewMode === 'grid' ? '#FFFFFF' : colors.primary}
+                    />
+                    <Text style={[
+                      styles.viewToggleText,
+                      viewMode === 'grid' && styles.viewToggleTextActive
+                    ]}>Grid</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterDropdownAnchor}>
+                  <TouchableOpacity
+                    style={styles.filterDropdownTrigger}
+                    onPress={() => setIsFilterDropdownVisible((prev) => !prev)}
+                  >
+                    <Ionicons name="filter" size={14} color={colors.primary} />
+                    <Text style={styles.filterDropdownTriggerText}>{getDateFilterLabel()}</Text>
+                    <Ionicons
+                      name={isFilterDropdownVisible ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+
+                  {isFilterDropdownVisible && (
+                    <View style={styles.filterDropdownMenuInline}>
+                      {[
+                        { key: 'all', label: 'All Time' },
+                        { key: '7days', label: 'Last 7 Days' },
+                        { key: 'month', label: 'This Month' },
+                        { key: 'year', label: 'This Year' },
+                        { key: 'lastyear', label: 'Last Year' },
+                        { key: 'custom', label: 'Custom Range' },
+                      ].map((option) => (
+                        <TouchableOpacity
+                          key={option.key}
+                          style={[
+                            styles.filterDropdownItem,
+                            dateFilter === option.key && styles.filterDropdownItemActive
+                          ]}
+                          onPress={() => handleDateFilterSelect(option.key as 'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom')}
+                        >
+                          <Text
+                            style={[
+                              styles.filterDropdownItemText,
+                              dateFilter === option.key && styles.filterDropdownItemTextActive
+                            ]}
+                          >
+                            {option.label}
+                          </Text>
+                          {dateFilter === option.key && (
+                            <Ionicons name="checkmark" size={16} color={colors.primary} />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
               
               {isLoading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color={colors.primary} />
                   <Text style={styles.loadingText}>Loading parking history...</Text>
                 </View>
-              ) : historyData.length === 0 ? (
+              ) : filteredHistoryData.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <Text style={styles.emptyText}>No parking history found</Text>
-                  <Text style={styles.emptySubtext}>Your parking sessions will appear here</Text>
+                  <Text style={styles.emptySubtext}>Try changing filters or search keywords</Text>
                 </View>
               ) : (
-                historyData.map((spot, index) => (
+                <View style={viewMode === 'grid' ? styles.gridListContainer : undefined}>
+                {filteredHistoryData.map((spot, index) => (
                   <TouchableOpacity 
                     key={spot.reservation_id} 
-                    style={styles.parkingCard}
+                    style={[
+                      styles.parkingCard,
+                      viewMode === 'grid' && styles.parkingCardGrid
+                    ]}
                     onPress={() => handleReservationPress(spot)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.locationHeader}>
                       <View style={styles.locationTextContainer}>
-                        <Text style={styles.parkingLocation}>{spot.location_name}</Text>
                         <Text style={styles.parkingSpotId}>RES-{spot.reservation_id}</Text>
+                        <Text style={styles.parkingLocation}>{spot.location_name}</Text>
                       </View>
-                      <Ionicons 
-                        name="location" 
-                        size={32} 
-                        color={getLandmarkIconColor(spot.booking_status)} 
-                      />
-                    </View>
-                    <Text style={styles.parkingLabel}>Scan Timestamps</Text>
-                    <View style={styles.timeSlotContainer}>
-                      <View style={styles.timestampRow}>
-                        <Text style={styles.timestampLabel}>Start Scan:</Text>
-                        <Text style={styles.timestampValue}>
-                          {spot.start_time ? formatDate(spot.start_time) : 'Not scanned'}
-                        </Text>
-                      </View>
-                      <View style={styles.timestampRow}>
-                        <Text style={styles.timestampLabel}>End Scan:</Text>
-                        <Text style={styles.timestampValue}>
-                          {spot.end_time ? formatDate(spot.end_time) : 'Not scanned'}
-                        </Text>
-                      </View>
-                      <Text style={styles.durationText}>
-                        Duration: {formatDuration(spot.start_time, spot.end_time)}
-                      </Text>
-                      {spot.hours_deducted !== null && spot.hours_deducted !== undefined ? (
-                        <Text style={styles.hoursDeductedText}>
-                          Hours Deducted: {(() => {
-                            const hours = Math.floor(spot.hours_deducted);
-                            const minutes = Math.round((spot.hours_deducted - hours) * 60);
-                            
-                            if (hours === 0 && minutes > 0) {
-                              return `${minutes} min`;
-                            } else if (hours > 0 && minutes === 0) {
-                              return `${hours} hr${hours >= 1 ? 's' : ''}`;
-                            } else {
-                              return `${hours} hr${hours >= 1 ? 's' : ''} ${minutes} min`;
-                            }
-                          })()}
-                        </Text>
-                      ) : spot.end_time ? (
-                        <Text style={styles.hoursDeductedText}>
-                          Hours Deducted: {(() => {
-                            // Use the same minimum charge logic as formatHoursToHHMM
-                            const minCharge = 0.01; // 1 minute minimum
-                            const hours = Math.floor(minCharge);
-                            const minutes = Math.round((minCharge - hours) * 60);
-                            return minutes > 0 ? `${minutes} min` : `${hours} hr`;
-                          })()}
-                        </Text>
-                      ) : null}
-                    </View>
-                    <Text style={styles.parkingLabel}>Vehicle</Text>
-                    <Text style={styles.parkingTime}>
-                      {spot.vehicle_type} - {spot.brand} ({spot.plate_number})
-                    </Text>
-                    <Text style={styles.parkingLabel}>Spot</Text>
-                    <Text style={styles.parkingTime}>
-                      {spot.spot_number} ({spot.spot_type})
-                    </Text>
-                    <Text style={styles.historyDate}>Date: {formatDate(spot.time_stamp)}</Text>
-                    <View style={styles.parkingStatusContainer}>
-                      <Text style={[
-                        styles.completedStatus,
-                        spot.booking_status === 'completed' ? styles.completedStatus : 
-                        spot.booking_status === 'active' ? styles.activeStatus : styles.reservedStatus
+                      <View style={[
+                        styles.statusPill,
+                        { backgroundColor: getLandmarkIconColor(spot.booking_status) }
                       ]}>
-                        {spot.booking_status.toUpperCase()}
+                        <Text style={styles.statusPillText}>
+                          {(spot.booking_status || 'unknown').toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.compactMetaContainer}>
+                      <Text style={styles.compactMetaText} numberOfLines={1}>
+                        {spot.vehicle_type || 'Vehicle'} - {spot.plate_number || 'No plate'}
                       </Text>
-                      <View style={styles.buttonContainer}>
+                      <Text style={styles.compactMetaText} numberOfLines={1}>
+                        Spot {spot.spot_number || '-'} ({spot.spot_type || '-'})
+                      </Text>
+                      <Text style={styles.historyDate}>Date: {formatDate(spot.time_stamp)}</Text>
+                    </View>
+
+                    <View style={styles.parkingStatusContainer}>
+                      <View style={[
+                        styles.buttonContainer,
+                        viewMode === 'grid' && styles.buttonContainerGrid
+                      ]}>
                         <TouchableOpacity 
                           style={styles.trashButton}
                           onPress={() => handleDeleteHistory(spot.reservation_id)}
@@ -846,17 +1064,90 @@ const HistoryScreen: React.FC = () => {
                           style={styles.bookButton}
                           onPress={() => handleBookAgain(spot.reservation_id)}
                         >
-                          <Text style={styles.bookButtonText}>BOOK AGAIN</Text>
+                          <Text style={styles.bookButtonText}>
+                            {viewMode === 'grid' ? 'BOOK' : 'BOOK AGAIN'}
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
                   </TouchableOpacity>
-                ))
+                ))}
+                </View>
               )}
             </View>
           </ScrollView>
         </View>
       </View>
+      {showScrollTopButton && (
+        <TouchableOpacity
+          style={localStyles.scrollTopButton}
+          onPress={() => mainScrollRef.current?.scrollTo({ y: 0, animated: true })}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="chevron-up" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={isCustomFilterModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsCustomFilterModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.customFilterModalContainer}>
+            <View style={styles.vehicleModalHeader}>
+              <Text style={styles.vehicleModalTitle}>Custom Date Range</Text>
+              <TouchableOpacity onPress={() => setIsCustomFilterModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.customFilterHint}>
+              Tap a start date, then tap an end date.
+            </Text>
+
+            <View style={styles.customRangePreview}>
+              <Text style={styles.customRangePreviewText}>
+                Start: {customStartDate || 'Not selected'}
+              </Text>
+              <Text style={styles.customRangePreviewText}>
+                End: {customEndDate || 'Not selected'}
+              </Text>
+            </View>
+
+            <Calendar
+              markingType="period"
+              markedDates={getMarkedDates()}
+              onDayPress={handleCustomCalendarDayPress}
+              theme={{
+                calendarBackground: colors.card,
+                dayTextColor: colors.text,
+                monthTextColor: colors.text,
+                arrowColor: colors.primary,
+                textDisabledColor: colors.textSecondary,
+                todayTextColor: colors.primary,
+              }}
+              style={styles.customCalendar}
+            />
+
+            <View style={styles.customFilterActions}>
+              <TouchableOpacity
+                style={styles.customFilterClearButton}
+                onPress={clearCustomDateFilter}
+              >
+                <Text style={styles.customFilterClearText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.customFilterApplyButton}
+                onPress={applyCustomDateFilter}
+              >
+                <Text style={styles.customFilterApplyText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Vehicle Selection Modal */}
       <Modal

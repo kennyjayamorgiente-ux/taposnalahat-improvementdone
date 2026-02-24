@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
-  Dimensions,
   ScrollView,
   Modal,
   TextInput,
@@ -16,8 +15,8 @@ import { useRouter } from 'expo-router';
 import { SvgXml } from 'react-native-svg';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { Calendar } from 'react-native-calendars';
 import SharedHeader from '../../components/SharedHeader';
-import { useAuth } from '../../contexts/AuthContext';
 import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
 import {
   whiteStarIconSvg,
@@ -27,15 +26,10 @@ import {
 import { ApiService } from '../../services/api';
 import { 
   useScreenDimensions, 
-  getAdaptiveFontSize, 
   getAdaptiveSize, 
   getAdaptivePadding, 
-  getAdaptiveMargin 
 } from '../../hooks/use-screen-dimensions';
 import { createHistoryScreenStyles } from '../styles/historyScreenStyles';
-import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
-
-const { width, height } = Dimensions.get('window');
 
 interface Feedback {
   feedback_id: number;
@@ -58,7 +52,6 @@ interface FeedbackComment {
 
 const MyFeedbackScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
   const colors = useThemeColors();
   const { isDarkMode } = useTheme();
   const screenDimensions = useScreenDimensions();
@@ -72,6 +65,15 @@ const MyFeedbackScreen: React.FC = () => {
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [feedbackComments, setFeedbackComments] = useState<FeedbackComment[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom'>('all');
+  const [isFilterDropdownVisible, setIsFilterDropdownVisible] = useState(false);
+  const [isCustomFilterModalVisible, setIsCustomFilterModalVisible] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const mainScrollRef = useRef<ScrollView>(null);
 
   const styles = createHistoryScreenStyles(screenDimensions, colors);
 
@@ -176,32 +178,6 @@ const MyFeedbackScreen: React.FC = () => {
     setFeedbackComments([]);
   };
 
-  // Profile picture component (same as HistoryScreen)
-  const ProfilePicture = ({ size = 100 }: { size?: number }) => {
-    const getInitials = () => {
-      if (!user) return '?';
-      const firstName = user.first_name || '';
-      const lastName = user.last_name || '';
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    };
-
-    const profileImageUrl = getNormalizedProfileImageFromUser(user as any);
-
-    if (profileImageUrl) {
-      return (
-        <View style={[styles.profilePicture, { width: size, height: size, borderRadius: size / 2 }]}>
-          <Text style={{ color: 'white', fontSize: size / 3, fontWeight: 'bold' }}>{getInitials()}</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={[styles.profilePicture, { width: size, height: size, borderRadius: size / 2 }]}>
-        <Text style={{ color: 'white', fontSize: size / 3, fontWeight: 'bold' }}>{getInitials()}</Text>
-      </View>
-    );
-  };
-
   const renderStars = (rating: number, size: number = 16) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -239,6 +215,198 @@ const MyFeedbackScreen: React.FC = () => {
     }
   };
 
+  const parseInputDate = (value: string): Date | null => {
+    if (!value?.trim()) return null;
+    const parsed = new Date(`${value}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const filteredFeedbackList = useMemo(() => {
+    const now = new Date();
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    const customStart = parseInputDate(customStartDate);
+    const customEnd = parseInputDate(customEndDate);
+    const customEndInclusive = customEnd ? new Date(customEnd.getTime() + (24 * 60 * 60 * 1000) - 1) : null;
+
+    return feedbackList.filter((feedback) => {
+      const searchable = [
+        `FB-${feedback.feedback_id}`,
+        feedback.content || '',
+        feedback.status || '',
+        `${feedback.rating}/5`,
+      ].join(' ').toLowerCase();
+
+      const matchesSearch = !lowerQuery || searchable.includes(lowerQuery);
+      if (!matchesSearch) return false;
+
+      if (dateFilter === 'all') return true;
+
+      const recordDate = new Date(feedback.created_at);
+      if (Number.isNaN(recordDate.getTime())) return false;
+
+      if (dateFilter === '7days') {
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        return recordDate >= sevenDaysAgo && recordDate <= now;
+      }
+
+      if (dateFilter === 'month') {
+        return (
+          recordDate.getMonth() === now.getMonth() &&
+          recordDate.getFullYear() === now.getFullYear()
+        );
+      }
+
+      if (dateFilter === 'year') {
+        return recordDate.getFullYear() === now.getFullYear();
+      }
+
+      if (dateFilter === 'lastyear') {
+        return recordDate.getFullYear() === (now.getFullYear() - 1);
+      }
+
+      if (dateFilter === 'custom') {
+        if (!customStart || !customEndInclusive) return true;
+        return recordDate >= customStart && recordDate <= customEndInclusive;
+      }
+
+      return true;
+    });
+  }, [feedbackList, searchQuery, dateFilter, customStartDate, customEndDate]);
+
+  const getDateFilterLabel = () => {
+    switch (dateFilter) {
+      case '7days':
+        return 'Last 7 Days';
+      case 'month':
+        return 'This Month';
+      case 'year':
+        return 'This Year';
+      case 'lastyear':
+        return 'Last Year';
+      case 'custom':
+        if (customStartDate && customEndDate) {
+          return `${customStartDate} to ${customEndDate}`;
+        }
+        return 'Custom Range';
+      default:
+        return 'All Time';
+    }
+  };
+
+  const handleDateFilterSelect = (filter: 'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom') => {
+    if (filter === 'custom') {
+      setIsFilterDropdownVisible(false);
+      setIsCustomFilterModalVisible(true);
+      return;
+    }
+
+    setDateFilter(filter);
+    setIsFilterDropdownVisible(false);
+  };
+
+  const handleCustomCalendarDayPress = (day: { dateString: string }) => {
+    const selectedDate = day.dateString;
+
+    if (!customStartDate || (customStartDate && customEndDate)) {
+      setCustomStartDate(selectedDate);
+      setCustomEndDate('');
+      return;
+    }
+
+    if (selectedDate < customStartDate) {
+      setCustomStartDate(selectedDate);
+      return;
+    }
+
+    setCustomEndDate(selectedDate);
+  };
+
+  const applyCustomDateFilter = () => {
+    const start = parseInputDate(customStartDate);
+    const end = parseInputDate(customEndDate);
+
+    if (!start || !end) {
+      Alert.alert('Invalid date', 'Please select both start and end dates.');
+      return;
+    }
+
+    if (start > end) {
+      Alert.alert('Invalid range', 'Start date must be before or equal to end date.');
+      return;
+    }
+
+    setDateFilter('custom');
+    setIsCustomFilterModalVisible(false);
+  };
+
+  const clearCustomDateFilter = () => {
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setDateFilter('all');
+    setIsCustomFilterModalVisible(false);
+  };
+
+  const getMarkedDates = () => {
+    const marked: Record<string, any> = {};
+
+    if (!customStartDate) return marked;
+
+    if (!customEndDate) {
+      marked[customStartDate] = {
+        startingDay: true,
+        endingDay: true,
+        color: colors.primary,
+        textColor: '#FFFFFF',
+      };
+      return marked;
+    }
+
+    let cursor = new Date(`${customStartDate}T00:00:00`);
+    const end = new Date(`${customEndDate}T00:00:00`);
+
+    while (cursor <= end) {
+      const key = cursor.toISOString().split('T')[0];
+      marked[key] = {
+        startingDay: key === customStartDate,
+        endingDay: key === customEndDate,
+        color: colors.primary,
+        textColor: '#FFFFFF',
+      };
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return marked;
+  };
+
+  const localStyles = StyleSheet.create({
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: getAdaptivePadding(screenDimensions, 14),
+      paddingTop: getAdaptivePadding(screenDimensions, 10),
+      paddingBottom: getAdaptivePadding(screenDimensions, 10),
+    },
+    contentCard: {
+      flex: 1,
+      backgroundColor: colors.profileCard,
+      borderRadius: getAdaptiveSize(screenDimensions, 14),
+      paddingHorizontal: getAdaptivePadding(screenDimensions, 12),
+      paddingTop: getAdaptivePadding(screenDimensions, 12),
+    },
+    scrollTopButton: {
+      position: 'absolute',
+      right: getAdaptivePadding(screenDimensions, 24),
+      bottom: getAdaptivePadding(screenDimensions, 28),
+      width: getAdaptiveSize(screenDimensions, 48),
+      height: getAdaptiveSize(screenDimensions, 48),
+      borderRadius: getAdaptiveSize(screenDimensions, 24),
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      elevation: 8,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <SharedHeader 
@@ -247,24 +415,17 @@ const MyFeedbackScreen: React.FC = () => {
         onBackPress={handleBackPress}
       />
       
-      <View style={styles.scrollContainer}>
-        {/* Profile Content Card */}
-        <View style={styles.profileCard}>
-          {/* Profile Picture Section */}
-          <View style={styles.fixedProfileSection}>
-            <View style={styles.profilePictureContainer}>
-              <ProfilePicture size={screenDimensions.isTablet ? 170 : 150} />
-            </View>
-            
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>MY FEEDBACK</Text>
-              <Text style={styles.userEmail}>YOUR RATINGS AND ADMIN REPLIES</Text>
-            </View>
-          </View>
-
+      <View style={localStyles.contentContainer}>
+        <View style={localStyles.contentCard}>
           <ScrollView 
+            ref={mainScrollRef}
             style={styles.profileCardScroll} 
             showsVerticalScrollIndicator={false}
+            onScroll={(event) => {
+              const offsetY = event.nativeEvent.contentOffset.y;
+              setShowScrollTopButton(offsetY > 200);
+            }}
+            scrollEventThrottle={16}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -272,6 +433,106 @@ const MyFeedbackScreen: React.FC = () => {
             {/* Feedback Items */}
             <View style={styles.spotsContainer}>
               <Text style={styles.spotsTitle}>Your Feedback</Text>
+              <View style={styles.controlsContainer}>
+                <View style={styles.searchContainer}>
+                  <Ionicons name="search" size={16} color={colors.textSecondary} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search id, content, rating, status..."
+                    placeholderTextColor={colors.textSecondary}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </View>
+
+                <View style={styles.viewToggleContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.viewToggleButton,
+                      viewMode === 'list' && styles.viewToggleButtonActive
+                    ]}
+                    onPress={() => setViewMode('list')}
+                  >
+                    <Ionicons
+                      name="list"
+                      size={16}
+                      color={viewMode === 'list' ? '#FFFFFF' : colors.primary}
+                    />
+                    <Text style={[
+                      styles.viewToggleText,
+                      viewMode === 'list' && styles.viewToggleTextActive
+                    ]}>List</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.viewToggleButton,
+                      viewMode === 'grid' && styles.viewToggleButtonActive
+                    ]}
+                    onPress={() => setViewMode('grid')}
+                  >
+                    <Ionicons
+                      name="grid"
+                      size={16}
+                      color={viewMode === 'grid' ? '#FFFFFF' : colors.primary}
+                    />
+                    <Text style={[
+                      styles.viewToggleText,
+                      viewMode === 'grid' && styles.viewToggleTextActive
+                    ]}>Grid</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterDropdownAnchor}>
+                  <TouchableOpacity
+                    style={styles.filterDropdownTrigger}
+                    onPress={() => setIsFilterDropdownVisible((prev) => !prev)}
+                  >
+                    <Ionicons name="filter" size={14} color={colors.primary} />
+                    <Text style={styles.filterDropdownTriggerText}>{getDateFilterLabel()}</Text>
+                    <Ionicons
+                      name={isFilterDropdownVisible ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+
+                  {isFilterDropdownVisible && (
+                    <View style={styles.filterDropdownMenuInline}>
+                      {[
+                        { key: 'all', label: 'All Time' },
+                        { key: '7days', label: 'Last 7 Days' },
+                        { key: 'month', label: 'This Month' },
+                        { key: 'year', label: 'This Year' },
+                        { key: 'lastyear', label: 'Last Year' },
+                        { key: 'custom', label: 'Custom Range' },
+                      ].map((option) => (
+                        <TouchableOpacity
+                          key={option.key}
+                          style={[
+                            styles.filterDropdownItem,
+                            dateFilter === option.key && styles.filterDropdownItemActive
+                          ]}
+                          onPress={() => handleDateFilterSelect(option.key as 'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom')}
+                        >
+                          <Text
+                            style={[
+                              styles.filterDropdownItemText,
+                              dateFilter === option.key && styles.filterDropdownItemTextActive
+                            ]}
+                          >
+                            {option.label}
+                          </Text>
+                          {dateFilter === option.key && (
+                            <Ionicons name="checkmark" size={16} color={colors.primary} />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
               
               {loading ? (
                 <View style={styles.loadingContainer}>
@@ -288,10 +549,10 @@ const MyFeedbackScreen: React.FC = () => {
                     <Text style={styles.bookNowButtonText}>Retry</Text>
                   </TouchableOpacity>
                 </View>
-              ) : feedbackList.length === 0 ? (
+              ) : filteredFeedbackList.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <Text style={styles.emptyText}>No feedback yet</Text>
-                  <Text style={styles.emptySubtext}>Rate the app from your profile to see your feedback here</Text>
+                  <Text style={styles.emptySubtext}>Try changing filters or search keywords</Text>
                   <TouchableOpacity
                     style={styles.bookNowButton}
                     onPress={() => router.push('/ProfileScreen')}
@@ -300,53 +561,119 @@ const MyFeedbackScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
               ) : (
-                feedbackList.map((feedback) => (
+                <View style={viewMode === 'grid' ? styles.gridListContainer : undefined}>
+                {filteredFeedbackList.map((feedback) => (
                   <TouchableOpacity 
                     key={feedback.feedback_id} 
-                    style={styles.parkingCard}
+                    style={[
+                      styles.parkingCard,
+                      viewMode === 'grid' && styles.parkingCardGrid
+                    ]}
                     onPress={() => navigateToFeedbackDetail(feedback.feedback_id)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.locationHeader}>
                       <View style={styles.locationTextContainer}>
-                        <Text style={styles.parkingLocation}>Rating: {feedback.rating}/5</Text>
                         <Text style={styles.parkingSpotId}>FB-{feedback.feedback_id}</Text>
+                        <Text style={styles.parkingLocation}>{formatDate(feedback.created_at)}</Text>
                       </View>
-                      <Ionicons 
-                        name="star" 
-                        size={32} 
-                        color={feedback.rating >= 4 ? '#4CAF50' : feedback.rating >= 3 ? '#FFA500' : '#FF4444'} 
-                      />
+                      <View style={[
+                        styles.statusPill,
+                        { backgroundColor: feedback.status === 'resolved' ? '#34C759' : '#8E8E93' }
+                      ]}>
+                        <Text style={styles.statusPillText}>
+                          {(feedback.status || 'pending').toUpperCase()}
+                        </Text>
+                      </View>
                     </View>
                     
-                    <Text style={styles.parkingLabel}>Your Rating</Text>
                     <View style={styles.timeSlotContainer}>
                       {renderStars(feedback.rating)}
                     </View>
-                    
-                    <Text style={styles.parkingLabel}>Your Comment</Text>
-                    <Text style={styles.timestampDetailValue}>
+
+                    <Text style={styles.compactMetaText} numberOfLines={2}>
                       {feedback.content || 'No additional comments provided'}
                     </Text>
-                    
-                    <View style={styles.timestampRow}>
-                      <Text style={styles.timestampLabel}>Submitted:</Text>
-                      <Text style={styles.timestampValue}>
-                        {formatDate(feedback.created_at)}
-                      </Text>
-                    </View>
-                    
-                    <View style={styles.timestampDetailRow}>
-                      <Text style={styles.timestampDetailLabel}>Tap to view admin replies</Text>
-                      <Ionicons name="chevron-forward" size={16} color="#8A0000" />
-                    </View>
+
+                    <Text style={styles.historyDate}>Tap to view details and admin replies</Text>
                   </TouchableOpacity>
-                ))
+                ))}
+                </View>
               )}
             </View>
           </ScrollView>
         </View>
       </View>
+      {showScrollTopButton && (
+        <TouchableOpacity
+          style={localStyles.scrollTopButton}
+          onPress={() => mainScrollRef.current?.scrollTo({ y: 0, animated: true })}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="chevron-up" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={isCustomFilterModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsCustomFilterModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.customFilterModalContainer}>
+            <View style={styles.vehicleModalHeader}>
+              <Text style={styles.vehicleModalTitle}>Custom Date Range</Text>
+              <TouchableOpacity onPress={() => setIsCustomFilterModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.customFilterHint}>
+              Tap a start date, then tap an end date.
+            </Text>
+
+            <View style={styles.customRangePreview}>
+              <Text style={styles.customRangePreviewText}>
+                Start: {customStartDate || 'Not selected'}
+              </Text>
+              <Text style={styles.customRangePreviewText}>
+                End: {customEndDate || 'Not selected'}
+              </Text>
+            </View>
+
+            <Calendar
+              markingType="period"
+              markedDates={getMarkedDates()}
+              onDayPress={handleCustomCalendarDayPress}
+              theme={{
+                calendarBackground: colors.card,
+                dayTextColor: colors.text,
+                monthTextColor: colors.text,
+                arrowColor: colors.primary,
+                textDisabledColor: colors.textSecondary,
+                todayTextColor: colors.primary,
+              }}
+              style={styles.customCalendar}
+            />
+
+            <View style={styles.customFilterActions}>
+              <TouchableOpacity
+                style={styles.customFilterClearButton}
+                onPress={clearCustomDateFilter}
+              >
+                <Text style={styles.customFilterClearText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.customFilterApplyButton}
+                onPress={applyCustomDateFilter}
+              >
+                <Text style={styles.customFilterApplyText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Feedback Details Modal - Like Reservation Modal */}
       <Modal

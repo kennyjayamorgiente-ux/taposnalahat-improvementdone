@@ -8,9 +8,8 @@ import {
   Animated,
   Modal,
   Alert,
-  Image
+  StyleSheet
 } from 'react-native';
-import { Image as ExpoImage } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,17 +22,12 @@ import ApiService from '../../services/api';
 import RealtimeService from '../../services/realtime';
 import { getFavoritesScreenStyles } from '../styles/favoritesScreenStyles';
 import { 
-  maroonUsersEditIconSvg,
-  maroonLocationIconSvg,
-  maroonTimeIconSvg,
   maroonTrashIconSvg,
   darkTrashIconSvg,
-  tapParkLogoSvg,
   whiteCarIconSvg,
   whiteMotorIconSvg,
   whiteEbikeIconSvg
 } from '../assets/icons/index2';
-import { getNormalizedProfileImageFromUser } from '../../utils/profileImage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -100,51 +94,10 @@ const FavoritesScreen: React.FC = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [showVehicleMismatchModal, setShowVehicleMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState<any>(null);
-  const [profileImageFailed, setProfileImageFailed] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const mainScrollRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    setProfileImageFailed(false);
-  }, [(user as any)?.profile_image, (user as any)?.profile_image_url]);
-
-  // Profile picture component
-  const ProfilePicture = ({ size = 100 }: { size?: number }) => {
-    const getInitials = () => {
-      if (!user) return '?';
-      const firstName = user.first_name || '';
-      const lastName = user.last_name || '';
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    };
-
-    const profileImageUrl = profileImageFailed ? null : getNormalizedProfileImageFromUser(user as any);
-
-    // If profile image URL is provided, show the image
-    if (profileImageUrl) {
-      return (
-        <View style={[favoritesScreenStyles.profilePicture, { width: size, height: size, borderRadius: size / 2 }]}>
-          <ExpoImage
-            source={{ uri: profileImageUrl }}
-            style={{ width: size - 4, height: size - 4, borderRadius: (size - 4) / 2 }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={200}
-            onError={({ error }) => {
-              console.warn('⚠️ Failed to load profile image (FavoritesScreen):', profileImageUrl, error);
-              setProfileImageFailed(true);
-            }}
-          />
-        </View>
-      );
-    }
-
-    // Fallback to initials
-    return (
-      <View style={[favoritesScreenStyles.profilePicture, { width: size, height: size, borderRadius: size / 2 }]}>
-        <Text style={[favoritesScreenStyles.profileInitials, { fontSize: size * 0.3 }]}>
-          {getInitials()}
-        </Text>
-      </View>
-    );
-  };
 
   // Fetch user vehicles
   useEffect(() => {
@@ -244,10 +197,6 @@ const FavoritesScreen: React.FC = () => {
       RealtimeService.unsubscribe({ userId });
     };
   }, [user?.user_id]);
-
-  const handleEditProfile = () => {
-    // Handle edit profile
-  };
 
   // Get vehicle icon based on type
   const getVehicleIcon = (vehicleType: string) => {
@@ -550,8 +499,34 @@ const FavoritesScreen: React.FC = () => {
     fetchVehicles();
   }, []);
 
-  // Use state for favorite spots to enable re-rendering
-  const favoriteSpots = favorites;
+  const localStyles = StyleSheet.create({
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: getResponsivePadding(14),
+      paddingTop: getResponsivePadding(10),
+      paddingBottom: getResponsivePadding(10),
+    },
+    contentCard: {
+      flex: 1,
+      backgroundColor: colors.profileCard,
+      borderRadius: getResponsiveSize(14),
+      paddingHorizontal: getResponsivePadding(12),
+      paddingTop: getResponsivePadding(12),
+    },
+    scrollTopButton: {
+      position: 'absolute',
+      right: getResponsivePadding(24),
+      bottom: getResponsivePadding(28),
+      width: getResponsiveSize(48),
+      height: getResponsiveSize(48),
+      borderRadius: getResponsiveSize(24),
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      elevation: 8,
+    },
+  });
 
   return (
     <View style={favoritesScreenStyles.container}>
@@ -560,30 +535,60 @@ const FavoritesScreen: React.FC = () => {
         showBackButton={false}
       />
       
-      <View style={favoritesScreenStyles.scrollContainer}>
-
-        {/* Profile Content Card */}
-        <View style={favoritesScreenStyles.profileCard}>
-          {/* Profile Picture Section */}
-          <View style={favoritesScreenStyles.fixedProfileSection}>
-            <View style={favoritesScreenStyles.profilePictureContainer}>
-              <ProfilePicture size={isTablet ? 170 : 150} />
-            </View>
-            
-            <View style={favoritesScreenStyles.userInfoContainer}>
-              <Text style={favoritesScreenStyles.userName}>FAVORITE SPOTS</Text>
-              <Text style={favoritesScreenStyles.userEmail}>YOUR SAVED PARKING LOCATIONS</Text>
-            </View>
-          </View>
-
+      <View style={localStyles.contentContainer}>
+        <View style={localStyles.contentCard}>
           <ScrollView 
+            ref={mainScrollRef}
             style={favoritesScreenStyles.profileCardScroll} 
             contentContainerStyle={favoritesScreenStyles.profileCardScrollContent}
             showsVerticalScrollIndicator={false}
+            onScroll={(event) => {
+              const offsetY = event.nativeEvent.contentOffset.y;
+              setShowScrollTopButton(offsetY > 200);
+            }}
+            scrollEventThrottle={16}
           >
             {/* Favorite Spots */}
             <View style={favoritesScreenStyles.spotsContainer}>
               <Text style={favoritesScreenStyles.spotsTitle}>Favorite Spots</Text>
+              <View style={favoritesScreenStyles.controlsContainer}>
+                <View style={favoritesScreenStyles.viewToggleContainer}>
+                  <TouchableOpacity
+                    style={[
+                      favoritesScreenStyles.viewToggleButton,
+                      viewMode === 'list' && favoritesScreenStyles.viewToggleButtonActive
+                    ]}
+                    onPress={() => setViewMode('list')}
+                  >
+                    <Ionicons
+                      name="list"
+                      size={16}
+                      color={viewMode === 'list' ? '#FFFFFF' : colors.primary}
+                    />
+                    <Text style={[
+                      favoritesScreenStyles.viewToggleText,
+                      viewMode === 'list' && favoritesScreenStyles.viewToggleTextActive
+                    ]}>List</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      favoritesScreenStyles.viewToggleButton,
+                      viewMode === 'grid' && favoritesScreenStyles.viewToggleButtonActive
+                    ]}
+                    onPress={() => setViewMode('grid')}
+                  >
+                    <Ionicons
+                      name="grid"
+                      size={16}
+                      color={viewMode === 'grid' ? '#FFFFFF' : colors.primary}
+                    />
+                    <Text style={[
+                      favoritesScreenStyles.viewToggleText,
+                      viewMode === 'grid' && favoritesScreenStyles.viewToggleTextActive
+                    ]}>Grid</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
               
               {isLoading ? (
                 <View style={favoritesScreenStyles.emptyFavoritesContainer}>
@@ -600,8 +605,15 @@ const FavoritesScreen: React.FC = () => {
                   </Text>
                 </View>
               ) : (
-                favorites.map((favorite, index) => (
-                <View key={favorite.favorites_id} style={favoritesScreenStyles.parkingCard}>
+                <View style={viewMode === 'grid' ? favoritesScreenStyles.gridListContainer : undefined}>
+                {favorites.map((favorite, index) => (
+                <View
+                  key={favorite.favorites_id}
+                  style={[
+                    favoritesScreenStyles.parkingCard,
+                    viewMode === 'grid' && favoritesScreenStyles.parkingCardGrid
+                  ]}
+                >
                   <View style={favoritesScreenStyles.locationHeader}>
                     <View style={favoritesScreenStyles.locationTextContainer}>
                       <Text style={favoritesScreenStyles.parkingLocation}>{favorite.parking_area_name}</Text>
@@ -628,7 +640,7 @@ const FavoritesScreen: React.FC = () => {
                         style={favoritesScreenStyles.bookButton}
                         onPress={() => handleBookSpot(favorite)}
                       >
-                        <Text style={favoritesScreenStyles.bookButtonText}>BOOK</Text>
+                        <Text style={favoritesScreenStyles.bookButtonText}>{viewMode === 'grid' ? 'BOOK' : 'BOOK NOW'}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
                         style={favoritesScreenStyles.removeButton}
@@ -643,12 +655,22 @@ const FavoritesScreen: React.FC = () => {
                     </View>
                   </View>
                 </View>
-                ))
+                ))}
+                </View>
               )}
             </View>
           </ScrollView>
         </View>
       </View>
+      {showScrollTopButton && (
+        <TouchableOpacity
+          style={localStyles.scrollTopButton}
+          onPress={() => mainScrollRef.current?.scrollTo({ y: 0, animated: true })}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="chevron-up" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
 
       {/* Vehicle Selection Modal */}
       <Modal

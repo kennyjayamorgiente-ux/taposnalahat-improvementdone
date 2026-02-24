@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,14 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
-  Modal
+  Modal,
+  TextInput
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { Calendar } from 'react-native-calendars';
 import SharedHeader from '../../components/SharedHeader';
 import { useAuth } from '../../contexts/AuthContext';
 import { useThemeColors, useTheme } from '../../contexts/ThemeContext';
@@ -106,6 +109,15 @@ const BalanceScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isTransactionModalVisible, setIsTransactionModalVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom'>('all');
+  const [isFilterDropdownVisible, setIsFilterDropdownVisible] = useState(false);
+  const [isCustomFilterModalVisible, setIsCustomFilterModalVisible] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  const contentScrollRef = useRef<ScrollView>(null);
 
   // Profile picture component
   const ProfilePicture = ({ size = 120 }: { size?: number }) => {
@@ -304,6 +316,170 @@ const BalanceScreen: React.FC = () => {
     }
   };
 
+  const parseTransactionDate = (transaction: any): Date | null => {
+    const sourceDate = transaction?.created_at || transaction?.updated_at || transaction?.date || transaction?.time_stamp;
+    if (!sourceDate) return null;
+    const parsed = new Date(sourceDate);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const parseInputDate = (value: string): Date | null => {
+    if (!value?.trim()) return null;
+    const parsed = new Date(`${value}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const getDateFilterLabel = () => {
+    switch (dateFilter) {
+      case '7days':
+        return 'Last 7 Days';
+      case 'month':
+        return 'This Month';
+      case 'year':
+        return 'This Year';
+      case 'lastyear':
+        return 'Last Year';
+      case 'custom':
+        if (customStartDate && customEndDate) {
+          return `${customStartDate} to ${customEndDate}`;
+        }
+        return 'Custom Range';
+      default:
+        return 'All Time';
+    }
+  };
+
+  const filteredTransactions = React.useMemo(() => {
+    const now = new Date();
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    const customStart = parseInputDate(customStartDate);
+    const customEnd = parseInputDate(customEndDate);
+    const customEndInclusive = customEnd ? new Date(customEnd.getTime() + (24 * 60 * 60 * 1000) - 1) : null;
+
+    return transactions.filter((transaction) => {
+      const searchable = [
+        String(transaction.payment_id || ''),
+        transaction.payment_type || '',
+        transaction.type || '',
+        transaction.location_name || '',
+        transaction.spot_number || '',
+        transaction.subscription_plan_name || transaction.plan_name || '',
+        transaction.status || '',
+        String(transaction.reference_number || ''),
+      ].join(' ').toLowerCase();
+
+      const matchesSearch = !lowerQuery || searchable.includes(lowerQuery);
+      if (!matchesSearch) return false;
+
+      if (dateFilter === 'all') return true;
+      const recordDate = parseTransactionDate(transaction);
+      if (!recordDate) return false;
+
+      if (dateFilter === '7days') {
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        return recordDate >= sevenDaysAgo && recordDate <= now;
+      }
+
+      if (dateFilter === 'month') {
+        return (
+          recordDate.getMonth() === now.getMonth() &&
+          recordDate.getFullYear() === now.getFullYear()
+        );
+      }
+
+      if (dateFilter === 'year') {
+        return recordDate.getFullYear() === now.getFullYear();
+      }
+
+      if (dateFilter === 'lastyear') {
+        return recordDate.getFullYear() === (now.getFullYear() - 1);
+      }
+
+      if (dateFilter === 'custom') {
+        if (!customStart || !customEndInclusive) return true;
+        return recordDate >= customStart && recordDate <= customEndInclusive;
+      }
+
+      return true;
+    });
+  }, [transactions, searchQuery, dateFilter, customStartDate, customEndDate]);
+
+  const applyCustomDateFilter = () => {
+    const start = parseInputDate(customStartDate);
+    const end = parseInputDate(customEndDate);
+
+    if (!start || !end) {
+      Alert.alert('Invalid date', 'Please select both start and end dates.');
+      return;
+    }
+
+    if (start > end) {
+      Alert.alert('Invalid range', 'Start date must be before or equal to end date.');
+      return;
+    }
+
+    setDateFilter('custom');
+    setIsCustomFilterModalVisible(false);
+  };
+
+  const clearCustomDateFilter = () => {
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setDateFilter('all');
+    setIsCustomFilterModalVisible(false);
+  };
+
+  const handleCustomCalendarDayPress = (day: { dateString: string }) => {
+    const selectedDate = day.dateString;
+
+    if (!customStartDate || (customStartDate && customEndDate)) {
+      setCustomStartDate(selectedDate);
+      setCustomEndDate('');
+      return;
+    }
+
+    if (selectedDate < customStartDate) {
+      setCustomStartDate(selectedDate);
+      return;
+    }
+
+    setCustomEndDate(selectedDate);
+  };
+
+  const getMarkedDates = () => {
+    const marked: Record<string, any> = {};
+
+    if (!customStartDate) return marked;
+
+    if (!customEndDate) {
+      marked[customStartDate] = {
+        startingDay: true,
+        endingDay: true,
+        color: colors.primary,
+        textColor: '#FFFFFF',
+      };
+      return marked;
+    }
+
+    let cursor = new Date(`${customStartDate}T00:00:00`);
+    const end = new Date(`${customEndDate}T00:00:00`);
+
+    while (cursor <= end) {
+      const key = cursor.toISOString().split('T')[0];
+      const isStart = key === customStartDate;
+      const isEnd = key === customEndDate;
+      marked[key] = {
+        startingDay: isStart,
+        endingDay: isEnd,
+        color: colors.primary,
+        textColor: '#FFFFFF',
+      };
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return marked;
+  };
+
   return (
     <View style={balanceScreenStyles.container}>
       <SharedHeader 
@@ -353,8 +529,14 @@ const BalanceScreen: React.FC = () => {
 
           {/* Scrollable Content Area */}
           <ScrollView 
+            ref={contentScrollRef}
             style={balanceScreenStyles.profileContentScroll}
             showsVerticalScrollIndicator={false}
+            onScroll={(event) => {
+              const offsetY = event.nativeEvent.contentOffset.y;
+              setShowScrollTopButton(offsetY > 200);
+            }}
+            scrollEventThrottle={16}
           >
             {/* Debit Card Container */}
             <View style={balanceScreenStyles.debitCardContainer}>
@@ -415,25 +597,136 @@ const BalanceScreen: React.FC = () => {
               />
               <Text style={balanceScreenStyles.transactionsTitle}>Transactions:</Text>
             </View>
+
+            <View style={balanceScreenStyles.controlsContainer}>
+              <View style={balanceScreenStyles.searchContainer}>
+                <Ionicons name="search" size={16} color={colors.textSecondary} />
+                <TextInput
+                  style={balanceScreenStyles.searchInput}
+                  placeholder="Search by ID, location, type..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+
+              <View style={balanceScreenStyles.viewToggleContainer}>
+                <TouchableOpacity
+                  style={[
+                    balanceScreenStyles.viewToggleButton,
+                    viewMode === 'list' && balanceScreenStyles.viewToggleButtonActive,
+                  ]}
+                  onPress={() => setViewMode('list')}
+                >
+                  <Ionicons name="list" size={16} color={viewMode === 'list' ? '#FFFFFF' : colors.primary} />
+                  <Text
+                    style={[
+                      balanceScreenStyles.viewToggleText,
+                      viewMode === 'list' && balanceScreenStyles.viewToggleTextActive,
+                    ]}
+                  >
+                    List
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    balanceScreenStyles.viewToggleButton,
+                    viewMode === 'grid' && balanceScreenStyles.viewToggleButtonActive,
+                  ]}
+                  onPress={() => setViewMode('grid')}
+                >
+                  <Ionicons name="grid" size={16} color={viewMode === 'grid' ? '#FFFFFF' : colors.primary} />
+                  <Text
+                    style={[
+                      balanceScreenStyles.viewToggleText,
+                      viewMode === 'grid' && balanceScreenStyles.viewToggleTextActive,
+                    ]}
+                  >
+                    Grid
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={balanceScreenStyles.filterRow}>
+              <View style={balanceScreenStyles.filterDropdownAnchor}>
+                <TouchableOpacity
+                  style={balanceScreenStyles.filterDropdownTrigger}
+                  onPress={() => setIsFilterDropdownVisible((prev) => !prev)}
+                >
+                  <Ionicons name="filter" size={14} color={colors.primary} />
+                  <Text style={balanceScreenStyles.filterDropdownTriggerText}>{getDateFilterLabel()}</Text>
+                  <Ionicons
+                    name={isFilterDropdownVisible ? 'chevron-up' : 'chevron-down'}
+                    size={14}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+
+                {isFilterDropdownVisible && (
+                  <View style={balanceScreenStyles.filterDropdownMenuInline}>
+                    {[
+                      { key: 'all', label: 'All Time' },
+                      { key: '7days', label: 'Last 7 Days' },
+                      { key: 'month', label: 'This Month' },
+                      { key: 'year', label: 'This Year' },
+                      { key: 'lastyear', label: 'Last Year' },
+                      { key: 'custom', label: 'Custom Range' },
+                    ].map((option) => (
+                      <TouchableOpacity
+                        key={option.key}
+                        style={[
+                          balanceScreenStyles.filterDropdownItem,
+                          dateFilter === option.key && balanceScreenStyles.filterDropdownItemActive,
+                        ]}
+                        onPress={() => {
+                          if (option.key === 'custom') {
+                            setIsFilterDropdownVisible(false);
+                            setIsCustomFilterModalVisible(true);
+                            return;
+                          }
+                          setDateFilter(option.key as 'all' | '7days' | 'month' | 'year' | 'lastyear' | 'custom');
+                          setIsFilterDropdownVisible(false);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            balanceScreenStyles.filterDropdownItemText,
+                            dateFilter === option.key && balanceScreenStyles.filterDropdownItemTextActive,
+                          ]}
+                        >
+                          {option.label}
+                        </Text>
+                        {dateFilter === option.key && (
+                          <Ionicons name="checkmark" size={16} color={colors.primary} />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
             
             {isLoading ? (
               <View style={balanceScreenStyles.transactionsLoadingContainer}>
                 <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={balanceScreenStyles.transactionsLoadingText}>Loading transactions...</Text>
               </View>
-            ) : transactions.length === 0 ? (
+            ) : filteredTransactions.length === 0 ? (
               <View style={balanceScreenStyles.emptyTransactionsContainer}>
                 <Text style={balanceScreenStyles.emptyTransactionsText}>No transactions found</Text>
-                <Text style={balanceScreenStyles.emptyTransactionsSubtext}>Your transaction history will appear here</Text>
-                <Text style={[balanceScreenStyles.emptyTransactionsSubtext, { marginTop: 10, fontSize: 12, color: '#999' }]}>
-                  Debug: transactions.length = {transactions.length}
-                </Text>
+                <Text style={balanceScreenStyles.emptyTransactionsSubtext}>Try changing your search or date filter</Text>
               </View>
             ) : (
-              transactions.map((transaction, index) => (
+              <View style={viewMode === 'grid' ? balanceScreenStyles.gridListContainer : undefined}>
+              {filteredTransactions.map((transaction, index) => (
                 <TouchableOpacity 
                   key={transaction.payment_id || index} 
-                  style={balanceScreenStyles.transactionItem}
+                  style={[
+                    balanceScreenStyles.transactionItem,
+                    viewMode === 'grid' && balanceScreenStyles.transactionItemGrid
+                  ]}
                   onPress={() => handleTransactionPress(transaction)}
                   activeOpacity={0.7}
                 >
@@ -444,7 +737,12 @@ const BalanceScreen: React.FC = () => {
                       height={getResponsiveSize(16)}
                     />
                   </View>
-                  <View style={balanceScreenStyles.transactionInfo}>
+                  <View
+                    style={[
+                      balanceScreenStyles.transactionInfo,
+                      viewMode === 'grid' && balanceScreenStyles.transactionInfoGrid
+                    ]}
+                  >
                     <Text style={balanceScreenStyles.transactionAmount}>
                       {formatTransactionAmount(transaction)}
                     </Text>
@@ -453,19 +751,95 @@ const BalanceScreen: React.FC = () => {
                         {getSubscriptionPlanName(transaction)}
                       </Text>
                     )}
+                    <Text style={balanceScreenStyles.transactionDateText}>
+                      {formatTransactionDate(transaction.created_at || transaction.date)}
+                    </Text>
                   </View>
-                  <SvgXml 
-                    xml={isDarkMode ? darkTimeIconSvg : maroonTimeIconSvg}
-                    width={getResponsiveSize(16)}
-                    height={getResponsiveSize(16)}
-                  />
+                  {viewMode === 'list' && (
+                    <SvgXml 
+                      xml={isDarkMode ? darkTimeIconSvg : maroonTimeIconSvg}
+                      width={getResponsiveSize(16)}
+                      height={getResponsiveSize(16)}
+                    />
+                  )}
                 </TouchableOpacity>
-              ))
+              ))}
+              </View>
             )}
           </View>
           </ScrollView>
         </View>
       </ScrollView>
+      {showScrollTopButton && (
+        <TouchableOpacity
+          style={balanceScreenStyles.scrollTopButton}
+          onPress={() => contentScrollRef.current?.scrollTo({ y: 0, animated: true })}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="chevron-up" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={isCustomFilterModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsCustomFilterModalVisible(false)}
+      >
+        <View style={balanceScreenStyles.modalOverlay}>
+          <View style={balanceScreenStyles.customFilterModalContainer}>
+            <View style={balanceScreenStyles.customFilterModalHeader}>
+              <Text style={balanceScreenStyles.customFilterModalTitle}>Custom Date Range</Text>
+              <TouchableOpacity onPress={() => setIsCustomFilterModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={balanceScreenStyles.customFilterHint}>
+              Tap a start date, then tap an end date.
+            </Text>
+
+            <View style={balanceScreenStyles.customRangePreview}>
+              <Text style={balanceScreenStyles.customRangePreviewText}>
+                Start: {customStartDate || 'Not selected'}
+              </Text>
+              <Text style={balanceScreenStyles.customRangePreviewText}>
+                End: {customEndDate || 'Not selected'}
+              </Text>
+            </View>
+
+            <Calendar
+              markingType="period"
+              markedDates={getMarkedDates()}
+              onDayPress={handleCustomCalendarDayPress}
+              theme={{
+                calendarBackground: colors.card,
+                dayTextColor: colors.text,
+                monthTextColor: colors.text,
+                arrowColor: colors.primary,
+                textDisabledColor: colors.textSecondary,
+                todayTextColor: colors.primary,
+              }}
+              style={balanceScreenStyles.customCalendar}
+            />
+
+            <View style={balanceScreenStyles.customFilterActions}>
+              <TouchableOpacity
+                style={balanceScreenStyles.customFilterClearButton}
+                onPress={clearCustomDateFilter}
+              >
+                <Text style={balanceScreenStyles.customFilterClearText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={balanceScreenStyles.customFilterApplyButton}
+                onPress={applyCustomDateFilter}
+              >
+                <Text style={balanceScreenStyles.customFilterApplyText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Transaction Details Modal */}
       <Modal

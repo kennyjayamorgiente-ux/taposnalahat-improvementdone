@@ -182,6 +182,45 @@ export const getFavoritesScreenStyles = (colors: ThemeColors) => StyleSheet.crea
     color: colors.primary,
     marginBottom: getResponsiveMargin(20),
   },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: getResponsiveMargin(12),
+  },
+  viewToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: getResponsiveSize(10),
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: getResponsivePadding(3),
+    gap: getResponsiveMargin(4),
+  },
+  viewToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: getResponsiveMargin(4),
+    paddingHorizontal: getResponsivePadding(8),
+    paddingVertical: getResponsivePadding(6),
+    borderRadius: getResponsiveSize(8),
+  },
+  viewToggleButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  viewToggleText: {
+    color: colors.primary,
+    fontSize: getResponsiveFontSize(12),
+    fontWeight: '600',
+  },
+  viewToggleTextActive: {
+    color: colors.textInverse,
+  },
+  gridListContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
   parkingCard: {
     backgroundColor: colors.backgroundSecondary,
     borderWidth: 1,
@@ -198,6 +237,10 @@ export const getFavoritesScreenStyles = (colors: ThemeColors) => StyleSheet.crea
     shadowOpacity: 0.1,
     shadowRadius: getResponsiveSize(4),
     elevation: 3,
+  },
+  parkingCardGrid: {
+    width: '48%',
+    minHeight: getResponsiveSize(220),
   },
   locationHeader: {
     flexDirection: 'row',

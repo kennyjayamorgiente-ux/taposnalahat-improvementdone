@@ -313,6 +313,8 @@ const ActiveParkingScreen: React.FC = () => {
   const [hasShownExpirationModal, setHasShownExpirationModal] = useState(false);
   const [lastExpiredReservationId, setLastExpiredReservationId] = useState<number | null>(null);
   const [gracePeriodDeadline, setGracePeriodDeadline] = useState<string>('');
+  const [gracePeriodCreatedAt, setGracePeriodCreatedAt] = useState<string | null>(null);
+  const [gracePeriodRemainingMs, setGracePeriodRemainingMs] = useState<number>(0);
   
   // Real parking start time from booking data
   const parkingStartTime = useRef<number | null>(null);
@@ -451,8 +453,37 @@ const formatHoursToHHMM = (decimalHours: number): string => {
   const showGracePeriodWarningModal = (createdAt: string) => {
     const deadline = calculateGracePeriodDeadline(createdAt);
     setGracePeriodDeadline(deadline);
+    setGracePeriodCreatedAt(createdAt);
+    setGracePeriodRemainingMs(calculateTimeRemaining(createdAt));
     setShowGracePeriodWarning(true);
   };
+
+  useEffect(() => {
+    if (!showGracePeriodWarning || !gracePeriodCreatedAt) {
+      return;
+    }
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const updateCountdown = () => {
+      const remaining = calculateTimeRemaining(gracePeriodCreatedAt);
+      setGracePeriodRemainingMs(remaining);
+
+      if (remaining <= 0 && intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    updateCountdown();
+    intervalId = setInterval(updateCountdown, 1000);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [showGracePeriodWarning, gracePeriodCreatedAt]);
 
   const getReservationCreatedAt = (booking: any): string | null => {
     return (
@@ -504,6 +535,8 @@ const formatHoursToHHMM = (decimalHours: number): string => {
   const handleGracePeriodWarningClose = () => {
     setShowGracePeriodWarning(false);
     setGracePeriodDeadline('');
+    setGracePeriodCreatedAt(null);
+    setGracePeriodRemainingMs(0);
   };
 
   const handleParkingEndModalClose = () => {
@@ -5023,6 +5056,16 @@ const formatHoursToHHMM = (decimalHours: number): string => {
                 <View style={activeParkingScreenStyles.gracePeriodDeadlineContainer}>
                   <Text style={activeParkingScreenStyles.gracePeriodDeadlineText}>
                     {gracePeriodDeadline}
+                  </Text>
+                </View>
+
+                <Text style={activeParkingScreenStyles.gracePeriodModalText}>
+                  Time remaining:
+                </Text>
+
+                <View style={activeParkingScreenStyles.gracePeriodDeadlineContainer}>
+                  <Text style={activeParkingScreenStyles.gracePeriodDeadlineText}>
+                    {formatTimeRemaining(gracePeriodRemainingMs)}
                   </Text>
                 </View>
                 
